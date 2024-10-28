@@ -13,6 +13,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
 import { Button as ModernButton } from '@/components/ui/button';
 import { CartButton } from '@/components/CartButton';
+import { ALL_STORES } from '@/data/stores';
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
@@ -30,51 +31,9 @@ interface Store {
   };
 }
 
-const stores: Store[] = [
-  {
-    id: 1,
-    name: "Blooming Paradise",
-    rating: 4.8,
-    reviews: 128,
-    image: "https://images.unsplash.com/photo-1562690868-60bbe7293e94",
-    distance: "2.5",
-    address: "123 Flower Street, Garden District",
-    coordinates: {
-      latitude: -33.9169,
-      longitude: 18.4167
-    }
-  },
-  {
-    id: 2,
-    name: "Waterfront Blooms",
-    rating: 4.6,
-    reviews: 95,
-    image: "https://images.unsplash.com/photo-1562690868-60bbe7293e94",
-    distance: "3.2",
-    address: "V&A Waterfront, Cape Town",
-    coordinates: {
-      latitude: -33.9032,
-      longitude: 18.4195
-    }
-  },
-  {
-    id: 3,
-    name: "Table Mountain Florist",
-    rating: 4.7,
-    reviews: 112,
-    image: "https://images.unsplash.com/photo-1562690868-60bbe7293e94",
-    distance: "1.8",
-    address: "15 Orange Street, Gardens, Cape Town",
-    coordinates: {
-      latitude: -33.9271,
-      longitude: 18.4127
-    }
-  }
-];
-
 export default function StoresScreen() {
   const [searchQuery, setSearchQuery] = useState('');
-  const [filteredStores, setFilteredStores] = useState(stores);
+  const [filteredStores, setFilteredStores] = useState(ALL_STORES);
   const [sortBy, setSortBy] = useState<'distance' | 'rating'>('distance');
   const [menuVisible, setMenuVisible] = useState(false);
   const [location, setLocation] = useState<Location.LocationObject | null>(null);
@@ -112,7 +71,7 @@ export default function StoresScreen() {
   }, [location]);
 
   useEffect(() => {
-    let result = [...stores];
+    let result = [...ALL_STORES];
     
     if (searchQuery) {
       result = result.filter(store => 
@@ -226,7 +185,7 @@ export default function StoresScreen() {
                 longitudeDelta: 0.0421,
               }}
             >
-              {stores.map((store) => {
+              {ALL_STORES.map((store) => {
                 if (!store.coordinates) return null;
                 
                 return (

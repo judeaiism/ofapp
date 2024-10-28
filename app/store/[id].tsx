@@ -8,24 +8,28 @@ import { Feather } from '@expo/vector-icons';
 import { Button } from 'react-native-paper';
 import { useCart } from '../contexts/CartContext';
 import { CartButton } from '@/components/CartButton';
-
-interface Product {
-  id: number;
-  name: string;
-  price: number;
-  image: string;
-  description: string;
-  category: string;
-  inStock: boolean;
-}
+import { getStoreById } from '@/data/stores';
+import { Store } from '@/types/store';
 
 export default function StoreDetailsScreen() {
   const { id } = useLocalSearchParams();
   const [selectedProducts, setSelectedProducts] = useState<{[key: number]: number}>({});
   const { dispatch } = useCart();
   
+  // Get the specific store data using the ID
+  const store = getStoreById(Number(id));
+
+  // Show loading or error state if store not found
+  if (!store) {
+    return (
+      <ThemedView style={styles.container}>
+        <Typography variant="h2">Store not found</Typography>
+      </ThemedView>
+    );
+  }
+
   const handleCall = () => {
-    Linking.openURL(`tel:${store.phone}`);
+    Linking.openURL(`tel:${store.contact.phone}`);
   };
 
   const handleMessage = () => {
@@ -36,91 +40,18 @@ export default function StoreDetailsScreen() {
     });
   };
 
-  const addToCart = (productId: number) => {
-    setSelectedProducts(prev => ({
-      ...prev,
-      [productId]: (prev[productId] || 0) + 1
-    }));
-  };
-
-  const removeFromCart = (productId: number) => {
-    setSelectedProducts(prev => {
-      const newCount = (prev[productId] || 0) - 1;
-      const newSelected = { ...prev };
-      if (newCount <= 0) {
-        delete newSelected[productId];
-      } else {
-        newSelected[productId] = newCount;
-      }
-      return newSelected;
-    });
-  };
-
-  const getTotalPrice = () => {
-    return Object.entries(selectedProducts).reduce((total, [productId, quantity]) => {
-      const product = store.products.find(p => p.id === Number(productId));
-      return total + (product?.price || 0) * quantity;
-    }, 0);
-  };
-
-  const handleCheckout = () => {
-    router.push({
-      pathname: '/checkout',
-      params: { 
-        storeId: store.id,
-        products: JSON.stringify(selectedProducts)
-      }
-    });
-  };
-
-  const handleAddToCart = (product: Product) => {
+  const handleAddToCart = (product: Store['products'][0]) => {
     dispatch({
       type: 'ADD_ITEM',
       payload: {
         id: product.id,
-        storeId: Number(id),
+        storeId: store.id,
         name: product.name,
         price: product.price,
         quantity: 1,
         image: product.image
       }
     });
-  };
-
-  // In a real app, you would fetch the store data based on the ID
-  // For this example, we'll hardcode the data
-  const store = {
-    id: 1,
-    name: "Blooming Paradise",
-    rating: 4.8,
-    reviews: 128,
-    image: "https://images.unsplash.com/photo-1562690868-60bbe7293e94",
-    distance: "2.5",
-    address: "123 Flower Street, Garden District",
-    description: "A beautiful flower shop offering a wide variety of fresh flowers and arrangements. We specialize in custom bouquets and event floristry.",
-    hours: "Mon-Sat: 9AM-6PM\nSun: 10AM-4PM",
-    phone: "(555) 123-4567",
-    products: [
-      {
-        id: 1,
-        name: "Red Rose Bouquet",
-        price: 49.99,
-        image: "https://images.unsplash.com/photo-1548386135-000f8f8b6308",
-        description: "Beautiful arrangement of fresh red roses",
-        category: "Bouquets",
-        inStock: true,
-      },
-      {
-        id: 2,
-        name: "Sunflower Bundle",
-        price: 29.99,
-        image: "https://images.unsplash.com/photo-1551945326-df678a97c3af",
-        description: "Bright and cheerful sunflowers",
-        category: "Single Flowers",
-        inStock: true,
-      },
-      // Add more products as needed
-    ],
   };
 
   return (
@@ -137,7 +68,7 @@ export default function StoreDetailsScreen() {
       />
       <ThemedView style={styles.container}>
         <ScrollView>
-          <Image source={{ uri: store.image }} style={styles.image} />
+          <Image source={{ uri: store.coverImages[0] }} style={styles.image} />
           <View style={styles.content}>
             <Typography variant="h2" style={styles.name}>{store.name}</Typography>
             
@@ -155,18 +86,46 @@ export default function StoreDetailsScreen() {
 
             <View style={styles.infoSection}>
               <Feather name="clock" size={20} color="#666" />
-              <Typography variant="p" style={styles.infoText}>{store.hours}</Typography>
+              <Typography variant="p" style={styles.infoText}>
+                Monday: {store.hours.monday}{'\n'}
+                Tuesday: {store.hours.tuesday}{'\n'}
+                Wednesday: {store.hours.wednesday}{'\n'}
+                Thursday: {store.hours.thursday}{'\n'}
+                Friday: {store.hours.friday}{'\n'}
+                Saturday: {store.hours.saturday}{'\n'}
+                Sunday: {store.hours.sunday}
+              </Typography>
             </View>
 
             <View style={styles.infoSection}>
               <Feather name="phone" size={20} color="#666" />
-              <Typography variant="p" style={styles.infoText}>{store.phone}</Typography>
+              <Typography variant="p" style={styles.infoText}>{store.contact.phone}</Typography>
             </View>
 
             <Typography variant="h3" style={styles.sectionTitle}>About</Typography>
             <Typography variant="p" style={styles.description}>
               {store.description}
             </Typography>
+
+            {/* Services Section */}
+            <Typography variant="h3" style={styles.sectionTitle}>Services</Typography>
+            <View style={styles.tagContainer}>
+              {store.services.map((service, index) => (
+                <View key={index} style={styles.tag}>
+                  <Typography variant="small">{service}</Typography>
+                </View>
+              ))}
+            </View>
+
+            {/* Specialties Section */}
+            <Typography variant="h3" style={styles.sectionTitle}>Specialties</Typography>
+            <View style={styles.tagContainer}>
+              {store.specialties.map((specialty, index) => (
+                <View key={index} style={styles.tag}>
+                  <Typography variant="small">{specialty}</Typography>
+                </View>
+              ))}
+            </View>
 
             {/* Contact Buttons */}
             <View style={styles.contactButtons}>
@@ -199,34 +158,38 @@ export default function StoreDetailsScreen() {
                       {product.name}
                     </Typography>
                     <Typography variant="p" style={styles.productPrice}>
-                      ${product.price.toFixed(2)}
+                      R{product.price.toFixed(2)}
+                    </Typography>
+                    <Typography variant="small" style={styles.productDescription}>
+                      {product.description}
                     </Typography>
                     <Button 
                       mode="contained"
                       onPress={() => handleAddToCart(product)}
+                      disabled={!product.inStock}
                     >
-                      Add to Cart
+                      {product.inStock ? 'Add to Cart' : 'Out of Stock'}
                     </Button>
                   </View>
                 </View>
               ))}
             </View>
 
-            {/* Checkout Bar */}
-            {Object.keys(selectedProducts).length > 0 && (
-              <View style={styles.checkoutBar}>
-                <Typography variant="p" style={styles.totalPrice}>
-                  Total: ${getTotalPrice().toFixed(2)}
-                </Typography>
-                <Button 
-                  mode="contained"
-                  onPress={handleCheckout}
-                  style={styles.checkoutButton}
-                >
-                  Proceed to Checkout
-                </Button>
+            {/* Delivery Information */}
+            <Typography variant="h3" style={styles.sectionTitle}>Delivery Information</Typography>
+            <View style={styles.deliveryInfo}>
+              <Typography variant="p">Minimum Order: R{store.deliveryInfo.minOrder}</Typography>
+              <Typography variant="p">Delivery Fee: R{store.deliveryInfo.fee}</Typography>
+              <Typography variant="p">Estimated Time: {store.deliveryInfo.estimatedTime}</Typography>
+              <Typography variant="p">Delivery Areas:</Typography>
+              <View style={styles.tagContainer}>
+                {store.deliveryInfo.areas.map((area, index) => (
+                  <View key={index} style={styles.tag}>
+                    <Typography variant="small">{area}</Typography>
+                  </View>
+                ))}
               </View>
-            )}
+            </View>
           </View>
         </ScrollView>
       </ThemedView>
@@ -343,4 +306,26 @@ const styles = StyleSheet.create({
   checkoutButton: {
     minWidth: 150,
   },
+  tagContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginTop: 8,
+  },
+  tag: {
+    backgroundColor: '#F3F4F6',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+  },
+  deliveryInfo: {
+    backgroundColor: '#F3F4F6',
+    padding: 16,
+    borderRadius: 12,
+    gap: 8,
+  },
+  productDescription: {
+    color: '#666',
+    marginVertical: 4,
+  }
 });
