@@ -78,78 +78,107 @@ export const CAPE_TOWN_STORES: Store[] = [
     ]
   },
   {
-    id: 2,
-    name: "Waterfront Blooms",
-    rating: 4.9,
-    reviews: 203,
-    image: "https://images.unsplash.com/photo-1558024160-4bfcbc4ee607",
+    id: 3,
+    name: "Floral Accessories & More",
+    rating: 4.7,
+    reviews: 128,
+    image: "https://images.unsplash.com/photo-1490312278390-ab64016e0aa9",
     coverImages: [
-      "https://images.unsplash.com/photo-1558024160-4bfcbc4ee607",
-      // Add more cover images...
+      "https://images.unsplash.com/photo-1490312278390-ab64016e0aa9",
+      "https://images.unsplash.com/photo-1522448746354-da4936934201",
+      "https://images.unsplash.com/photo-1509519805559-c588c373d517"
     ],
-    distance: "3.4",
-    address: "Shop 123, Victoria Wharf Shopping Centre, V&A Waterfront, Cape Town",
+    distance: "1.8",
+    address: "Shop 7, Gardens Centre, Mill Street, Gardens, Cape Town",
     coordinates: {
-      latitude: -33.9033,
-      longitude: 18.4197
+      latitude: -33.9278,
+      longitude: 18.4178
     },
-    description: "Located in the heart of V&A Waterfront, offering premium floral designs",
+    description: "Your one-stop shop for all floral accessories, vases, ribbons, and flower care products",
     hours: {
       monday: "09:00-18:00",
       tuesday: "09:00-18:00",
       wednesday: "09:00-18:00",
       thursday: "09:00-18:00",
       friday: "09:00-19:00",
-      saturday: "09:00-19:00",
-      sunday: "10:00-17:00"
+      saturday: "09:00-17:00",
+      sunday: "10:00-14:00"
     },
     contact: {
-      phone: "+27 21 418 2288",
-      email: "info@waterfrontblooms.co.za",
-      website: "https://waterfrontblooms.co.za",
-      whatsapp: "+27 83 456 7890"
+      phone: "+27 21 424 9876",
+      email: "info@floralaccessories.co.za",
+      website: "https://floralaccessories.co.za",
+      whatsapp: "+27 82 345 6789"
     },
     social: {
-      instagram: "@waterfrontblooms",
-      facebook: "WaterfrontBlooms",
-      twitter: "@waterfrontbloom"
+      instagram: "@floralaccessoriescpt",
+      facebook: "FloralAccessoriesCPT",
+      twitter: "@floralaccesscpt"
     },
     services: [
-      "Luxury Bouquets",
-      "Event Styling",
-      "Hotel Flowers"
+      "Vase Customization",
+      "Gift Wrapping",
+      "Bulk Orders",
+      "Professional Advice"
     ],
     specialties: [
-      "Luxury Arrangements",
-      "Indigenous Flowers",
-      "European Style"
+      "Premium Vases",
+      "Flower Care Products",
+      "Decorative Accessories"
     ],
-    priceRange: "$$$",
+    priceRange: "$$",
     paymentMethods: [
       "Credit Card",
-      "EFT",
+      "Debit Card",
       "Cash",
-      "Zapper"
+      "EFT",
+      "Snapscan"
     ],
     deliveryInfo: {
       available: true,
-      fee: 75,
-      minOrder: 350,
-      areas: ["City Bowl", "Atlantic Seaboard", "V&A Waterfront"],
-      estimatedTime: "45-60 minutes"
+      fee: 45,
+      minOrder: 150,
+      areas: ["City Bowl", "Atlantic Seaboard", "Southern Suburbs"],
+      estimatedTime: "30-45 minutes"
     },
     featured: true,
     products: [
       {
         id: 1,
-        name: "Seasonal Mixed Bouquet",
-        price: 399.99,
-        image: "https://images.unsplash.com/photo-1561181286-d3fee7d55364",
-        description: "Beautiful mix of seasonal flowers",
-        category: "Bouquets",
+        name: "Crystal Glass Vase",
+        price: 299.99,
+        image: "https://images.unsplash.com/photo-1581783342308-f792dbdd27c5",
+        description: "Elegant crystal vase perfect for long-stem roses",
+        category: "Vases",
         inStock: true
       },
-      // Add more products...
+      {
+        id: 2,
+        name: "Ceramic Plant Pot",
+        price: 199.99,
+        image: "https://images.unsplash.com/photo-1485955900006-10f4d324d411",
+        description: "Modern ceramic pot with drainage hole",
+        category: "Containers",
+        inStock: true
+      },
+      {
+        id: 3,
+        name: "Flower Food Pack",
+        price: 49.99,
+        image: "https://images.unsplash.com/photo-1620503374956-c942862f0372",
+        description: "Professional flower food for longer lasting blooms",
+        category: "Care Products",
+        inStock: true
+      },
+      {
+        id: 40,
+        name: "Decorative Pebbles",
+        price: 79.99,
+        image: "https://images.unsplash.com/photo-1597484661643-2f5fef640dd1",
+        description: "Natural decorative pebbles for vase arrangements",
+        category: "Decorative",
+        inStock: true
+      }
     ]
   }
 ];
