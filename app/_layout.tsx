@@ -4,6 +4,8 @@ import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
 import 'react-native-reanimated';
+import { PaperProvider } from 'react-native-paper';
+import { CartProvider } from './contexts/CartContext';
 
 import { useColorScheme } from '@/hooks/useColorScheme';
 
@@ -27,13 +29,25 @@ export default function RootLayout() {
   }
 
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="stores" />
-        <Stack.Screen name="track-order" />
-        <Stack.Screen name="+not-found" />
-      </Stack>
-    </ThemeProvider>
+    <CartProvider>
+      <PaperProvider>
+        <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+          <Stack>
+            <Stack.Screen name="(tabs)" options={{ 
+              headerShown: false,
+              title: '' // This ensures no text appears in the header
+            }} />
+            <Stack.Screen name="store/[id]" />
+            <Stack.Screen name="(admin)" options={{ headerShown: false }} />
+            <Stack.Screen name="track-order" />
+            <Stack.Screen name="checkout" />
+            <Stack.Screen name="checkout/success" />
+            <Stack.Screen name="orders/[id]" />
+            <Stack.Screen name="chat/[id]" />
+            <Stack.Screen name="+not-found" />
+          </Stack>
+        </ThemeProvider>
+      </PaperProvider>
+    </CartProvider>
   );
 }

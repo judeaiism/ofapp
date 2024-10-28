@@ -45,7 +45,7 @@ export default function HomeScreen() {
         <ThemedView style={styles.contentContainer}>
           <ModernButton 
             icon={<Feather name="shopping-bag" size={20} color="white" />}
-            onPress={() => router.push('/stores')}>
+            onPress={() => router.replace('/stores')}>
             Browse Flower Stores
           </ModernButton>
 

@@ -1,5 +1,6 @@
-import { Stack } from 'expo-router';
-import { StyleSheet } from 'react-native';
+import { Pressable, StyleSheet } from 'react-native';
+import { Feather } from '@expo/vector-icons';
+import { Stack, router } from 'expo-router';
 
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
