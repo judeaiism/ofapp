@@ -102,7 +102,7 @@ export default function StoresScreen() {
     <>
       <Stack.Screen 
         options={{ 
-          headerTitle: "Flower Stores",
+          headerTitle: "Wiid Stores",
           headerTransparent: true,
           headerStyle: {
             backgroundColor: 'transparent',
@@ -179,13 +179,15 @@ export default function StoresScreen() {
             <MapView
               style={styles.map}
               initialRegion={{
-                latitude: location?.coords?.latitude ?? -33.9249,  // Cape Town latitude
-                longitude: location?.coords?.longitude ?? 18.4241,  // Cape Town longitude
+                latitude: -33.9249,  // Cape Town city center
+                longitude: 18.4241,
                 latitudeDelta: 0.0922,
                 longitudeDelta: 0.0421,
               }}
+              showsUserLocation={true}
+              showsMyLocationButton={true}
             >
-              {ALL_STORES.map((store) => {
+              {filteredStores.map((store) => {
                 if (!store.coordinates) return null;
                 
                 return (
@@ -197,7 +199,14 @@ export default function StoresScreen() {
                     }}
                     title={store.name}
                     description={store.address}
-                  />
+                    onPress={() => handleStorePress(store.id)}
+                  >
+                    <View style={styles.markerContainer}>
+                      <View style={styles.marker}>
+                        <Feather name="shopping-bag" size={20} color="#fff" />
+                      </View>
+                    </View>
+                  </Marker>
                 );
               })}
             </MapView>
@@ -369,5 +378,23 @@ const styles = StyleSheet.create({
     },
     shadowOpacity: 0.1,
     shadowRadius: 3,
+  },
+  markerContainer: {
+    alignItems: 'center',
+  },
+  marker: {
+    backgroundColor: '#FF4B4B',
+    padding: 8,
+    borderRadius: 20,
+    borderWidth: 3,
+    borderColor: '#fff',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
   },
 });

@@ -35,7 +35,7 @@ export default function HomeScreen() {
       <ThemedView style={styles.container}>
         <ThemedView style={styles.titleContainer}>
           <Typography variant="h1" style={styles.title}>
-            Flower Delivery
+            Only Wiid
           </Typography>
           <Typography variant="h4" style={styles.subtitle}>
             Fresh flowers, delivered to you
@@ -46,7 +46,7 @@ export default function HomeScreen() {
           <ModernButton 
             icon={<Feather name="shopping-bag" size={20} color="white" />}
             onPress={() => router.replace('/stores')}>
-            Browse Flower Stores
+            Browse Wiid Stores
           </ModernButton>
 
           <ModernButton 

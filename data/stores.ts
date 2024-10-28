@@ -4,7 +4,7 @@ import { Store } from '@/types/store';
 export const CAPE_TOWN_STORES: Store[] = [
   {
     id: 1,
-    name: "Fabulous Flowers",
+    name: "Fabulous Wiid",
     rating: 4.8,
     reviews: 156,
     image: "https://images.unsplash.com/photo-1561181286-d3fee7d55364",
@@ -78,23 +78,21 @@ export const CAPE_TOWN_STORES: Store[] = [
     ]
   },
   {
-    id: 3,
-    name: "Floral Accessories & More",
+    id: 2,
+    name: "Wiid Accessories & More",
     rating: 4.7,
     reviews: 128,
     image: "https://images.unsplash.com/photo-1490312278390-ab64016e0aa9",
     coverImages: [
-      "https://images.unsplash.com/photo-1490312278390-ab64016e0aa9",
-      "https://images.unsplash.com/photo-1522448746354-da4936934201",
-      "https://images.unsplash.com/photo-1509519805559-c588c373d517"
+      "https://images.unsplash.com/photo-1490312278390-ab64016e0aa9"
     ],
     distance: "1.8",
-    address: "Shop 7, Gardens Centre, Mill Street, Gardens, Cape Town",
+    address: "Shop 7, V&A Waterfront, Cape Town",
     coordinates: {
-      latitude: -33.9278,
-      longitude: 18.4178
+      latitude: -33.9033,
+      longitude: 18.4197
     },
-    description: "Your one-stop shop for all floral accessories, vases, ribbons, and flower care products",
+    description: "Your one-stop shop for all wiid accessories, vases, ribbons, and flower care products",
     hours: {
       monday: "09:00-18:00",
       tuesday: "09:00-18:00",
@@ -106,14 +104,14 @@ export const CAPE_TOWN_STORES: Store[] = [
     },
     contact: {
       phone: "+27 21 424 9876",
-      email: "info@floralaccessories.co.za",
-      website: "https://floralaccessories.co.za",
+      email: "info@wiidaccessories.co.za",
+      website: "https://wiidaccessories.co.za",
       whatsapp: "+27 82 345 6789"
     },
     social: {
-      instagram: "@floralaccessoriescpt",
-      facebook: "FloralAccessoriesCPT",
-      twitter: "@floralaccesscpt"
+      instagram: "@wiidaccessoriescpt",
+      facebook: "WiidAccessoriesCPT",
+      twitter: "@wiidaccessoriescpt"
     },
     services: [
       "Vase Customization",
