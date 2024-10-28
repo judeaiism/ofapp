@@ -13,6 +13,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
 import { Button as ModernButton } from '@/components/ui/button';
 import { CartButton } from '@/components/CartButton';
+import { OptimizedImage } from '@/components/OptimizedImage';
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
@@ -237,7 +238,10 @@ export default function StoresScreen() {
                 style={styles.storeCard}
                 onPress={() => handleStorePress(store.id)}
               >
-                <Image source={{ uri: store.image }} style={styles.storeImage} />
+                <OptimizedImage 
+                  uri={store.image} 
+                  style={styles.storeImage}
+                />
                 <LinearGradient
                   colors={['rgba(0,0,0,0.5)', 'transparent']}
                   style={styles.imageOverlay}

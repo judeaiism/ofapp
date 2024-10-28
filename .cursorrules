@@ -1,0 +1,131 @@
+# Cursor Rules for Flower Delivery App
+
+## Code Style & Formatting
+- Use TypeScript for all new files
+- Follow existing file naming conventions:
+  - Components: PascalCase (e.g., CustomButton.tsx)
+  - Utilities/Hooks: camelCase (e.g., useThemeColor.ts)
+  - Constants: SCREAMING_SNAKE_CASE
+- Maintain consistent component structure:
+  ```typescript:components/ThemedText.tsx
+  startLine: 1
+  endLine: 34
+  ```
+- Use StyleSheet.create() for styles, placed at bottom of file
+- Follow existing style patterns:
+  ```typescript:app/(tabs)/stores.tsx
+  startLine: 271
+  endLine: 389
+  ```
+
+## Project Structure
+- Place new components in appropriate directories:
+  - UI components -> /components
+  - Screens -> /app/(relevant section)
+  - Hooks -> /hooks
+  - Types -> /types
+- Follow file-based routing conventions for new screens
+- Keep related files close together
+
+## Testing
+- Write Jest tests for new components
+- Use snapshot testing for UI components:
+  ```typescript:components/__tests__/ThemedText-test.tsx
+  startLine: 1
+  endLine: 10
+  ```
+- Place tests in __tests__ directory next to tested code
+
+## State Management
+- Use React Context for global state
+- Keep component state local when possible
+- Follow existing patterns for store management:
+  ```typescript:store/index.ts
+  startLine: 2890
+  endLine: 2932
+  ```
+
+## API Integration
+- Place API calls in dedicated files
+- Follow existing API patterns:
+  ```typescript:lib/fetch.ts
+  startLine: 2587
+  endLine: 2598
+  ```
+- Use proper error handling and loading states
+
+## Type Safety
+- Define interfaces/types in /types directory
+- Use TypeScript strict mode
+- Follow existing type patterns:
+  ```typescript:types/type.d.ts
+  startLine: 2969
+  endLine: 3022
+  ```
+
+## Performance
+- Lazy load routes and heavy components
+- Optimize images and assets
+- Use proper list virtualization
+- Implement proper memoization
+
+## Accessibility
+- Include proper aria labels
+- Support dark/light themes
+- Follow existing theming patterns:
+  ```typescript:components/ui/typography.tsx
+  startLine: 1
+  endLine: 62
+  ```
+
+## Git Workflow
+- Follow .gitignore patterns:
+  ```gitignore
+  startLine: 1
+  endLine: 20
+  ```
+- Use meaningful commit messages
+- Create feature branches from main
+- Submit PRs for review
+
+## Documentation
+- Document complex logic
+- Include JSDoc for public APIs
+- Update README for major changes
+- Follow existing documentation patterns
+
+## Dependencies
+- Get approval before adding new packages
+- Keep dependencies updated
+- Use exact versions in package.json
+
+## Security
+- Never commit sensitive data
+- Use environment variables for secrets
+- Validate all user inputs
+- Follow security best practices
+
+## Build & Deploy
+- Test builds before deployment
+- Follow versioning guidelines
+- Use proper environment configurations
+- Run all tests before deployment
+
+## Code Review
+- Review PR template requirements
+- Check for test coverage
+- Verify TypeScript compliance
+- Ensure documentation updates
+- Test on multiple devices
+
+## Error Handling
+- Implement proper error boundaries
+- Use consistent error messaging
+- Log errors appropriately
+- Handle edge cases
+
+## Responsive Design
+- Support multiple screen sizes
+- Follow existing responsive patterns
+- Test on various devices
+- Use relative units when possible
