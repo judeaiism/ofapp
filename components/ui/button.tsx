@@ -1,85 +1,74 @@
 import React from 'react';
-import { StyleSheet, Pressable, ViewStyle } from 'react-native';
-import { ThemedText } from '@/components/ThemedText';
-import Animated, { FadeIn } from 'react-native-reanimated';
+import { StyleSheet, Pressable, View, ViewStyle, StyleProp, TextStyle } from 'react-native';
+import { Typography } from './typography';
 
 interface ButtonProps {
-  variant?: 'default' | 'outline';
-  size?: 'default' | 'lg' | 'sm';
   children: React.ReactNode;
-  onPress?: () => void;
+  variant?: 'default' | 'outline';
   icon?: React.ReactNode;
-  style?: ViewStyle;
+  onPress?: () => void;
+  style?: StyleProp<ViewStyle>;
 }
 
-const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
-
-export function Button({ 
-  variant = 'default', 
-  size = 'default',
+export const Button: React.FC<ButtonProps> = ({ 
   children, 
-  onPress,
-  icon,
-  style
-}: ButtonProps) {
+  variant = 'default', 
+  icon, 
+  onPress, 
+  style 
+}) => {
+  const buttonStyles = [
+    styles.button,
+    variant === 'outline' && styles.outlineButton,
+    style
+  ];
+
+  const textStyle: StyleProp<TextStyle> = variant === 'outline' 
+    ? { ...styles.text, color: '#374151' }
+    : styles.text;
+
   return (
-    <AnimatedPressable
-      entering={FadeIn}
-      style={[
-        styles.base,
-        variant === 'outline' ? styles.outline : styles.default,
-        size === 'lg' ? styles.lg : size === 'sm' ? styles.sm : styles.default,
-        style
-      ]}
-      onPress={onPress}>
-      {icon && <Animated.View style={styles.icon}>{icon}</Animated.View>}
-      <ThemedText 
-        style={[
-          styles.text,
-          variant === 'outline' ? styles.outlineText : styles.defaultText
-        ]}>
-        {children}
-      </ThemedText>
-    </AnimatedPressable>
+    <Pressable 
+      onPress={onPress} 
+      style={buttonStyles}
+    >
+      <View style={styles.content}>
+        {icon && <View style={styles.icon}>{icon}</View>}
+        <Typography 
+          variant="p" 
+          style={textStyle}
+        >
+          {children}
+        </Typography>
+      </View>
+    </Pressable>
   );
-}
+};
 
 const styles = StyleSheet.create({
-  base: {
+  button: {
+    padding: 12,
+    borderRadius: 8,
+    backgroundColor: '#2563EB',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  outlineButton: {
+    backgroundColor: 'white',
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+  },
+  content: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: 12,
-    gap: 8,
-  },
-  default: {
-    backgroundColor: '#000',
-    padding: 16,
-  },
-  outline: {
-    backgroundColor: 'transparent',
-    borderWidth: 1.5,
-    borderColor: '#E5E7EB',
-    padding: 16,
-  },
-  sm: {
-    padding: 12,
-  },
-  lg: {
-    padding: 20,
-  },
-  text: {
-    fontSize: 16,
-    fontWeight: '600',
-    letterSpacing: -0.5,
-  },
-  defaultText: {
-    color: '#FFF',
-  },
-  outlineText: {
-    color: '#374151',
   },
   icon: {
-    opacity: 0.8,
-  }
+    marginRight: 8,
+  },
+  text: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '600',
+  } as TextStyle,
 });

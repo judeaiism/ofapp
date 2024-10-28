@@ -120,18 +120,26 @@ export default function StoresScreen() {
         options={{ 
           headerTitle: "Flower Stores",
           headerTransparent: true,
+          headerStyle: {
+            backgroundColor: 'transparent',
+          },
+          headerTitleStyle: {
+            color: '#000',
+            fontSize: 24,
+          },
+          headerShadowVisible: false,
           headerLeft: () => (
             <ModernButton
               variant="outline"
-              onPress={() => router.replace('/')}  // Changed to go directly to home
-              icon={<Feather name="home" size={20} color="#666" />}  // Changed to home icon
-              style={styles.backButton}
+              onPress={() => router.replace('/')}
+              icon={<Feather name="home" size={20} color="#666" />}
+              style={[styles.backButton]} // Updated style
             >
               Home
             </ModernButton>
           ),
           headerBackground: () => (
-            <BlurView intensity={100} style={StyleSheet.absoluteFill} />
+            <BlurView intensity={100} tint="light" style={[StyleSheet.absoluteFill, { zIndex: 0 }]} />
           ),
           headerRight: () => (
             <View style={styles.headerButtons}>
@@ -175,6 +183,12 @@ export default function StoresScreen() {
             value={searchQuery}
             style={styles.searchBar}
             iconColor="#666"
+            inputStyle={{ 
+              fontSize: 16,
+              color: '#1F2937', // Darker text color
+            }}
+            placeholderTextColor="#9CA3AF" // Lighter placeholder color
+            elevation={0} // Remove default elevation
           />
           
           <Animated.View style={[styles.mapContainer, mapExpanded && styles.mapExpanded]}>
@@ -262,7 +276,7 @@ const styles = StyleSheet.create({
   contentContainer: {
     flex: 1,
     paddingHorizontal: 16,
-    paddingTop: 100, // Adjust this value to prevent content from going under the header
+    paddingTop: 140, // Increased padding to account for header height
   },
   headerButtons: {
     flexDirection: 'row',
@@ -273,7 +287,22 @@ const styles = StyleSheet.create({
   searchBar: {
     marginBottom: 16,
     borderRadius: 12,
-    elevation: 2,
+    height: 50,
+    backgroundColor: '#F3F4F6',
+    // Enhanced shadow for better visibility
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+    elevation: 3,
+    // Remove any existing margins that might cause overlap
+    marginTop: 0,
+    // Add border for better definition
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
   },
   mapContainer: {
     height: 200,
@@ -340,8 +369,21 @@ const styles = StyleSheet.create({
     color: '#666',
   },
   backButton: {
-    marginLeft: 16,  // Add some left margin
-    backgroundColor: 'white',  // Make background visible
-    borderColor: '#E5E7EB',  // Light border
+    marginLeft: 16,
+    backgroundColor: 'white',
+    borderColor: '#E5E7EB',
+    height: 40,
+    minWidth: 100, // Add minimum width
+    paddingHorizontal: 12, // Adjust padding
+    paddingVertical: 8,  // Add vertical padding
+    borderRadius: 20,
+    elevation: 1,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
   },
 });
