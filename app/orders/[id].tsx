@@ -1,10 +1,11 @@
 import React from 'react';
 import { Stack, useLocalSearchParams } from 'expo-router';
-import { StyleSheet, ScrollView, View, Image } from 'react-native';
+import { StyleSheet, ScrollView, View } from 'react-native';
 import { ThemedView } from '@/components/ThemedView';
 import { Typography } from '@/components/ui/typography';
 import { BlurView } from 'expo-blur';
 import { Feather } from '@expo/vector-icons';
+import { OptimizedImage } from '@/components/OptimizedImage';
 
 interface OrderItem {
   id: number;
@@ -112,7 +113,10 @@ export default function OrderDetailsScreen() {
             </Typography>
             {orderDetails.items.map((item) => (
               <View key={item.id} style={styles.itemCard}>
-                <Image source={{ uri: item.image }} style={styles.itemImage} />
+                <OptimizedImage 
+                  uri={item.image} 
+                  style={styles.itemImage}
+                />
                 <View style={styles.itemInfo}>
                   <Typography variant="p" style={styles.itemName}>
                     {item.name}

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Stack } from 'expo-router';
-import { StyleSheet, ScrollView, View, Image, Pressable } from 'react-native';
+import { StyleSheet, ScrollView, View, Pressable } from 'react-native';
 import { ThemedView } from '@/components/ThemedView';
 import { Typography } from '@/components/ui/typography';
 import { Button } from 'react-native-paper';
@@ -8,6 +8,7 @@ import { BlurView } from 'expo-blur';
 import { Feather } from '@expo/vector-icons';
 import { useCart } from '@/app/contexts/CartContext';
 import { router } from 'expo-router';
+import { OptimizedImage } from '@/components/OptimizedImage';
 
 // Add interface for CartItem
 interface CartItem {
@@ -73,7 +74,10 @@ export default function CartScreen() {
             <ScrollView style={styles.itemList}>
               {state.items.map((item: CartItem) => (
                 <View key={item.id} style={styles.cartItem}>
-                  <Image source={{ uri: item.image }} style={styles.itemImage} />
+                  <OptimizedImage 
+                    uri={item.image} 
+                    style={styles.itemImage}
+                  />
                   <View style={styles.itemInfo}>
                     <Typography variant="p" style={styles.itemName}>
                       {item.name}

@@ -13,7 +13,6 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
 import { Button as ModernButton } from '@/components/ui/button';
 import { CartButton } from '@/components/CartButton';
-import { OptimizedImage } from '@/components/OptimizedImage';
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
@@ -41,11 +40,36 @@ const stores: Store[] = [
     distance: "2.5",
     address: "123 Flower Street, Garden District",
     coordinates: {
-      latitude: 37.7849,
-      longitude: -122.4194
+      latitude: -33.9169,
+      longitude: 18.4167
     }
   },
-  // ... add more stores if needed ...
+  {
+    id: 2,
+    name: "Waterfront Blooms",
+    rating: 4.6,
+    reviews: 95,
+    image: "https://images.unsplash.com/photo-1562690868-60bbe7293e94",
+    distance: "3.2",
+    address: "V&A Waterfront, Cape Town",
+    coordinates: {
+      latitude: -33.9032,
+      longitude: 18.4195
+    }
+  },
+  {
+    id: 3,
+    name: "Table Mountain Florist",
+    rating: 4.7,
+    reviews: 112,
+    image: "https://images.unsplash.com/photo-1562690868-60bbe7293e94",
+    distance: "1.8",
+    address: "15 Orange Street, Gardens, Cape Town",
+    coordinates: {
+      latitude: -33.9271,
+      longitude: 18.4127
+    }
+  }
 ];
 
 export default function StoresScreen() {
@@ -196,8 +220,8 @@ export default function StoresScreen() {
             <MapView
               style={styles.map}
               initialRegion={{
-                latitude: location?.coords?.latitude ?? 37.7749,
-                longitude: location?.coords?.longitude ?? -122.4194,
+                latitude: location?.coords?.latitude ?? -33.9249,  // Cape Town latitude
+                longitude: location?.coords?.longitude ?? 18.4241,  // Cape Town longitude
                 latitudeDelta: 0.0922,
                 longitudeDelta: 0.0421,
               }}
@@ -238,10 +262,7 @@ export default function StoresScreen() {
                 style={styles.storeCard}
                 onPress={() => handleStorePress(store.id)}
               >
-                <OptimizedImage 
-                  uri={store.image} 
-                  style={styles.storeImage}
-                />
+                <Image source={{ uri: store.image }} style={styles.storeImage} />
                 <LinearGradient
                   colors={['rgba(0,0,0,0.5)', 'transparent']}
                   style={styles.imageOverlay}
