@@ -10,6 +10,7 @@ import { Feather } from '@expo/vector-icons';
 import Animated, { FadeInDown, FadeIn } from 'react-native-reanimated';
 import { Button as ModernButton } from '@/components/ui/button';
 import { Typography } from '@/components/ui/typography';
+import { Image as ExpoImage } from 'expo-image';
 
 const { width } = Dimensions.get('window');
 const AnimatedView = Animated.createAnimatedComponent(View);
@@ -27,9 +28,13 @@ export default function HomeScreen() {
     <ParallaxScrollView
       headerBackgroundColor={{ light: '#FAFAFA', dark: '#1A1A1A' }}
       headerImage={
-        <Image 
-          source={{ uri: 'https://picsum.photos/800/300' }} 
-          style={styles.headerImage}
+        <ExpoImage 
+          source={require('@/assets/images/header-background.jpg')}
+          style={{
+            width: '100%',
+            height: 300,
+          }}
+          contentFit="cover"
         />
       }>
       <ThemedView style={styles.container}>
@@ -64,6 +69,7 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    paddingTop: 100,
     padding: 20,
   },
   titleContainer: {
@@ -88,7 +94,7 @@ const styles = StyleSheet.create({
   },
   headerImage: {
     width: '100%',
-    height: 200,
-    resizeMode: 'cover',
+    height: 300,
+    backgroundColor: '#f0f0f0',
   }
 });

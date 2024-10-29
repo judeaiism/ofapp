@@ -3,10 +3,9 @@ import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
-import 'react-native-reanimated';
+import { View } from 'react-native';
 import { PaperProvider } from 'react-native-paper';
 import { CartProvider } from './contexts/CartContext';
-
 import { useColorScheme } from '@/hooks/useColorScheme';
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
@@ -32,11 +31,24 @@ export default function RootLayout() {
     <CartProvider>
       <PaperProvider>
         <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-          <Stack>
-            <Stack.Screen name="(tabs)" options={{ 
-              headerShown: false,
-              title: '' // This ensures no text appears in the header
-            }} />
+          <Stack
+            screenOptions={{
+              headerShown: true,
+              headerStyle: {
+                backgroundColor: '#FFFFFF',
+              },
+              headerTitleStyle: {
+                color: '#000',
+                fontSize: 24,
+              },
+              headerShadowVisible: false,
+              headerTitleAlign: 'center',
+              contentStyle: {
+                paddingTop: 56,
+              },
+            }}
+          >
+            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
             <Stack.Screen name="store/[id]" />
             <Stack.Screen name="(admin)" options={{ headerShown: false }} />
             <Stack.Screen name="track-order" />

@@ -1,9 +1,10 @@
 import React from 'react';
-import { ScrollView, View, StyleSheet, ViewStyle } from 'react-native';
+import { StyleSheet, ViewStyle } from 'react-native';
 import Animated, { 
   useAnimatedScrollHandler,
   useAnimatedStyle,
-  useSharedValue
+  useSharedValue,
+  interpolate
 } from 'react-native-reanimated';
 
 interface ParallaxScrollViewProps {
@@ -31,12 +32,19 @@ export default function ParallaxScrollView({
   });
 
   const headerStyle = useAnimatedStyle(() => {
+    const translateY = interpolate(
+      scrollY.value,
+      [-300, 0, 300],
+      [-150, 0, 150]
+    );
+
     return {
-      transform: [
-        {
-          translateY: scrollY.value * 0.5,
-        },
-      ],
+      transform: [{ translateY }],
+      opacity: interpolate(
+        scrollY.value,
+        [-100, 0, 100],
+        [1, 1, 0.5]
+      ),
     };
   });
 
@@ -45,23 +53,32 @@ export default function ParallaxScrollView({
       onScroll={scrollHandler}
       scrollEventThrottle={16}
       style={[styles.container, style]}>
-      <Animated.View style={[styles.header, headerStyle]}>
-        {headerImage}
+      <Animated.View style={[styles.headerContainer]}>
+        <Animated.View style={[styles.header, headerStyle]}>
+          {headerImage}
+        </Animated.View>
       </Animated.View>
       {children}
     </Animated.ScrollView>
   );
 }
 
+const HEADER_HEIGHT = 300;
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  headerContainer: {
+    height: HEADER_HEIGHT,
+    marginBottom: 20,
   },
   header: {
     position: 'absolute',
     top: 0,
     left: 0,
     right: 0,
+    height: HEADER_HEIGHT,
     overflow: 'hidden',
   },
 });
