@@ -1,17 +1,35 @@
 import { Store } from '@/types/store';
 
+// Import images
+const storeImages = {
+  onlyWiid: {
+    main: require('@/assets/images/stores/only-wiid/store.jpg'),
+    covers: [
+      require('@/assets/images/stores/only-wiid/cover-1.jpg'),
+      require('@/assets/images/stores/only-wiid/cover-2.jpg'),
+    ],
+    products: {
+      product1: require('@/assets/images/stores/only-wiid/products/product-1.jpg'),
+      product2: require('@/assets/images/stores/only-wiid/products/product-2.jpg'),
+      product3: require('@/assets/images/stores/only-wiid/products/product-3.jpg'),
+      product4: require('@/assets/images/stores/only-wiid/products/product-4.jpg'),
+      product5: require('@/assets/images/stores/only-wiid/products/product-5.jpg'),
+      product6: require('@/assets/images/stores/only-wiid/products/product-6.jpg'),
+      product7: require('@/assets/images/stores/only-wiid/products/product-7.jpg'),
+      product8: require('@/assets/images/stores/only-wiid/products/product-8.jpg'),
+    }
+  }
+};
+
 // You can organize stores by area/region if needed
 export const CAPE_TOWN_STORES: Store[] = [
   {
     id: 1,
-    name: "Fabulous Wiid",
+    name: "Only Wiid",
     rating: 4.8,
     reviews: 156,
-    image: "https://images.unsplash.com/photo-1561181286-d3fee7d55364",
-    coverImages: [
-      "https://images.unsplash.com/photo-1561181286-d3fee7d55364",
-      // Add more cover images...
-    ],
+    image: storeImages.onlyWiid.main,
+    coverImages: storeImages.onlyWiid.covers,
     distance: "2.1",
     address: "Shop 4, Gardens Shopping Centre, Mill St, Gardens, Cape Town",
     coordinates: {
@@ -30,14 +48,14 @@ export const CAPE_TOWN_STORES: Store[] = [
     },
     contact: {
       phone: "+27 21 424 5344",
-      email: "info@fabulousflowers.co.za",
-      website: "https://fabulousflowers.co.za",
+      email: "info@onlyflowers.co.za",
+      website: "https://onlyflowers.co.za",
       whatsapp: "+27 82 123 4567"
     },
     social: {
-      instagram: "@fabulousflowerscpt",
-      facebook: "FabulousFlowersCPT",
-      twitter: "@fabulousflowerscpt"
+      instagram: "@onlyWiid",
+      facebook: "OnlyWiid",
+      twitter: "@onlywiid"
     },
     services: [
       "Wedding Bouquets",
@@ -69,7 +87,7 @@ export const CAPE_TOWN_STORES: Store[] = [
         id: 1,
         name: "Premium Rose Bouquet",
         price: 499.99,
-        image: "https://images.unsplash.com/photo-1548386135-000f8f8b6308",
+        image: storeImages.onlyWiid.products.product1,
         description: "Luxurious arrangement of fresh red roses",
         category: "Bouquets",
         inStock: true
@@ -78,7 +96,7 @@ export const CAPE_TOWN_STORES: Store[] = [
         id: 2,
         name: "Spring Garden Mix",
         price: 399.99,
-        image: "https://images.unsplash.com/photo-1562690868-60bbe7293e94",
+        image: storeImages.onlyWiid.products.product2,
         description: "Colorful mix of seasonal spring flowers",
         category: "Bouquets",
         inStock: true
@@ -87,7 +105,7 @@ export const CAPE_TOWN_STORES: Store[] = [
         id: 3,
         name: "Elegant White Orchids",
         price: 599.99,
-        image: "https://images.unsplash.com/photo-1567696153798-9111f9cd3d0d",
+        image: storeImages.onlyWiid.products.product3,
         description: "Pure white orchids in a ceramic pot",
         category: "Plants",
         inStock: true
@@ -96,7 +114,7 @@ export const CAPE_TOWN_STORES: Store[] = [
         id: 4,
         name: "Tropical Paradise",
         price: 449.99,
-        image: "https://images.unsplash.com/photo-1561181286-d3fee7d55364",
+        image: storeImages.onlyWiid.products.product4,
         description: "Exotic arrangement with birds of paradise",
         category: "Bouquets",
         inStock: true
@@ -105,7 +123,7 @@ export const CAPE_TOWN_STORES: Store[] = [
         id: 5,
         name: "Succulent Garden",
         price: 299.99,
-        image: "https://images.unsplash.com/photo-1446071103084-c257b5f70672",
+        image: storeImages.onlyWiid.products.product5,
         description: "Mixed succulent arrangement in terrarium",
         category: "Plants",
         inStock: true
@@ -114,7 +132,7 @@ export const CAPE_TOWN_STORES: Store[] = [
         id: 6,
         name: "Birthday Celebration",
         price: 449.99,
-        image: "https://images.unsplash.com/photo-1561181286-d3fee7d55364",
+        image: storeImages.onlyWiid.products.product6,
         description: "Festive arrangement perfect for birthdays",
         category: "Bouquets",
         inStock: true
@@ -123,7 +141,7 @@ export const CAPE_TOWN_STORES: Store[] = [
         id: 7,
         name: "Peace Lily Plant",
         price: 349.99,
-        image: "https://images.unsplash.com/photo-1567696153798-9111f9cd3d0d",
+        image: storeImages.onlyWiid.products.product7,
         description: "Air-purifying peace lily in decorative pot",
         category: "Plants",
         inStock: true
@@ -132,7 +150,7 @@ export const CAPE_TOWN_STORES: Store[] = [
         id: 8,
         name: "Luxury Valentine's Special",
         price: 699.99,
-        image: "https://images.unsplash.com/photo-1548386135-000f8f8b6308",
+        image: storeImages.onlyWiid.products.product8,
         description: "Premium roses with chocolates and wine",
         category: "Special",
         inStock: true

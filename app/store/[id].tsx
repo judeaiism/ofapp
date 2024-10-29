@@ -68,7 +68,7 @@ export default function StoreDetailsScreen() {
       />
       <ThemedView style={styles.container}>
         <ScrollView>
-          <Image source={{ uri: store.coverImages[0] }} style={styles.image} />
+          <Image source={store.coverImages[0]} style={styles.image} />
           <View style={styles.content}>
             <Typography variant="h2" style={styles.name}>{store.name}</Typography>
             
@@ -152,7 +152,7 @@ export default function StoreDetailsScreen() {
             <View style={styles.productsGrid}>
               {store.products.map(product => (
                 <View key={product.id} style={styles.productCard}>
-                  <Image source={{ uri: product.image }} style={styles.productImage} />
+                  <Image source={product.image} style={styles.productImage} />
                   <View style={styles.productInfo}>
                     <Typography variant="p" style={styles.productName}>
                       {product.name}

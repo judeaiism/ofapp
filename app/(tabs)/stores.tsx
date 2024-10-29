@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Stack } from 'expo-router';
-import { StyleSheet, ScrollView, View, Image, Pressable } from 'react-native';
+import { StyleSheet, ScrollView, View, Image, Pressable, ActivityIndicator } from 'react-native';
 import { Typography } from '@/components/ui/typography';
 import { ThemedView } from '@/components/ThemedView';
 import { Searchbar, Menu, Button } from 'react-native-paper';
@@ -14,22 +14,9 @@ import { BlurView } from 'expo-blur';
 import { Button as ModernButton } from '@/components/ui/button';
 import { CartButton } from '@/components/CartButton';
 import { ALL_STORES } from '@/data/stores';
+import { Store } from '@/types/store';
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
-
-interface Store {
-  id: number;
-  name: string;
-  rating: number;
-  reviews: number;
-  image: string;
-  distance: string;
-  address: string;
-  coordinates?: {
-    latitude: number;
-    longitude: number;
-  };
-}
 
 export default function StoresScreen() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -40,6 +27,8 @@ export default function StoresScreen() {
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [mapExpanded, setMapExpanded] = useState(false);
   const [mapRegion, setMapRegion] = useState<Region | undefined>(undefined);
+  const [imageLoadingStates, setImageLoadingStates] = useState<{[key: number]: boolean}>({});
+  const [imageErrorStates, setImageErrorStates] = useState<{[key: number]: boolean}>({});
 
   useEffect(() => {
     (async () => {
@@ -238,11 +227,33 @@ export default function StoresScreen() {
                 style={styles.storeCard}
                 onPress={() => handleStorePress(store.id)}
               >
-                <Image source={{ uri: store.image }} style={styles.storeImage} />
-                <LinearGradient
-                  colors={['rgba(0,0,0,0.5)', 'transparent']}
-                  style={styles.imageOverlay}
-                />
+                <View style={styles.imageContainer}>
+                  <Image 
+                    source={typeof store.image === 'number' ? store.image : { uri: store.image }}
+                    style={styles.storeImage}
+                    resizeMode="cover"
+                    onLoadStart={() => setImageLoadingStates(prev => ({ ...prev, [store.id]: true }))}
+                    onLoadEnd={() => setImageLoadingStates(prev => ({ ...prev, [store.id]: false }))}
+                    onError={() => setImageErrorStates(prev => ({ ...prev, [store.id]: true }))}
+                  />
+                  {imageLoadingStates[store.id] && (
+                    <View style={[styles.storeImage, styles.imagePlaceholder]}>
+                      <ActivityIndicator color="#666" />
+                    </View>
+                  )}
+                  {imageErrorStates[store.id] && (
+                    <View style={[styles.storeImage, styles.imageError]}>
+                      <Feather name="image" size={24} color="#666" />
+                      <Typography variant="small" style={styles.errorText}>
+                        Image not available
+                      </Typography>
+                    </View>
+                  )}
+                  <LinearGradient
+                    colors={['rgba(0,0,0,0.5)', 'transparent']}
+                    style={styles.imageOverlay}
+                  />
+                </View>
                 <View style={styles.storeInfo}>
                   <Typography variant="h3" style={styles.storeName}>
                     {store.name}
@@ -414,5 +425,29 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
     elevation: 5,
+  },
+  imageContainer: {
+    position: 'relative',
+  },
+  imagePlaceholder: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  imageError: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  errorText: {
+    color: '#666',
   },
 });

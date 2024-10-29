@@ -3,8 +3,8 @@ export interface Store {
   name: string;
   rating: number;
   reviews: number;
-  image: string;
-  coverImages: string[];
+  image: number;
+  coverImages: number[];
   distance: string;
   address: string;
   coordinates: {
@@ -48,7 +48,7 @@ export interface Store {
     id: number;
     name: string;
     price: number;
-    image: string;
+    image: number;
     description: string;
     category: string;
     inStock: boolean;

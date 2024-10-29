@@ -5,7 +5,7 @@ import { ThemedView } from '@/components/ThemedView';
 import { Typography } from '@/components/ui/typography';
 import { BlurView } from 'expo-blur';
 import { Feather } from '@expo/vector-icons';
-import { OptimizedImage } from '@/components/OptimizedImage';
+import { ProductImage } from '@/components/ProductImage';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 interface OrderItem {
@@ -112,8 +112,8 @@ export default function OrderDetailsScreen() {
             </Typography>
             {orderDetails.items.map((item) => (
               <View key={item.id} style={styles.itemCard}>
-                <OptimizedImage 
-                  uri={item.image} 
+                <ProductImage 
+                  source={item.image} 
                   style={styles.itemImage}
                 />
                 <View style={styles.itemInfo}>
