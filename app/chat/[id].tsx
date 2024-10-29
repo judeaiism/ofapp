@@ -6,6 +6,7 @@ import { Typography } from '@/components/ui/typography';
 import { TextInput, Button } from 'react-native-paper';
 import { BlurView } from 'expo-blur';
 import { Feather } from '@expo/vector-icons';
+import { Linking } from 'react-native';
 
 interface Message {
   id: number;
@@ -26,6 +27,7 @@ export default function ChatScreen() {
     },
     // Add more sample messages as needed
   ]);
+  const [hasRedirected, setHasRedirected] = useState(false);
 
   const sendMessage = () => {
     if (!message.trim()) return;
@@ -44,11 +46,19 @@ export default function ChatScreen() {
     setTimeout(() => {
       const storeResponse: Message = {
         id: messages.length + 2,
-        text: "Thank you for your message! We'll get back to you shortly.",
+        text: "Thank you for your message! We'll be redirecting you to our support page for faster assistance.",
         sender: 'store',
         timestamp: new Date(),
       };
       setMessages(prev => [...prev, storeResponse]);
+      
+      // Only redirect if this is the first automatic reply
+      if (!hasRedirected) {
+        setTimeout(() => {
+          Linking.openURL('https://your-support-url.com');
+          setHasRedirected(true);
+        }, 1500); // Wait 1.5 seconds before redirecting
+      }
     }, 1000);
   };
 

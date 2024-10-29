@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, Image, View, ScrollView, Dimensions } from 'react-native';
+import { StyleSheet, Image, View, ScrollView, Dimensions, Linking } from 'react-native';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import ParallaxScrollView from '@/components/ParallaxScrollView';
@@ -57,7 +57,7 @@ export default function HomeScreen() {
           <ModernButton 
             variant="outline"
             icon={<Feather name="map-pin" size={20} color="#374151" />}
-            onPress={() => router.push('/track-order')}>
+            onPress={() => Linking.openURL('https://tracking.wiid.com')}>
             Track Your Order
           </ModernButton>
         </ThemedView>
