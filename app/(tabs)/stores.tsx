@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Stack } from 'expo-router';
-import { StyleSheet, ScrollView, View, Image, Pressable, Text } from 'react-native';
+import { StyleSheet, ScrollView, View, Image, Pressable } from 'react-native';
 import { Typography } from '@/components/ui/typography';
 import { ThemedView } from '@/components/ThemedView';
 import { Searchbar, Menu, Button } from 'react-native-paper';
@@ -186,92 +186,83 @@ export default function StoresScreen() {
             elevation={0} // Remove default elevation
           />
           
-          {/* Map Section */}
-          <View style={styles.section}>
-            <Text style={styles.sectionHeader}>Nearby Stores</Text>
-            <Animated.View style={[styles.mapContainer, mapExpanded && styles.mapExpanded]}>
-              <MapView
-                style={styles.map}
-                region={mapRegion}
-                showsUserLocation={true}
-                showsMyLocationButton={true}
-              >
-                {filteredStores.map((store) => {
-                  if (!store.coordinates) return null;
-                  
-                  return (
-                    <Marker
-                      key={store.id}
-                      coordinate={{
-                        latitude: store.coordinates.latitude,
-                        longitude: store.coordinates.longitude,
-                      }}
-                      title={store.name}
-                      description={store.address}
-                      onPress={() => handleStorePress(store.id)}
-                    >
-                      <View style={styles.markerContainer}>
-                        <View style={styles.marker}>
-                          <Feather name="shopping-bag" size={20} color="#fff" />
-                        </View>
-                      </View>
-                    </Marker>
-                  );
-                })}
-              </MapView>
-              <Button 
-                mode="contained" 
-                onPress={() => setMapExpanded(!mapExpanded)}
-                style={styles.expandButton}
-              >
-                {mapExpanded ? 'Collapse Map' : 'Expand Map'}
-              </Button>
-            </Animated.View>
-          </View>
-
-          {/* Separator */}
-          <View style={styles.separator} />
-
-          {/* Stores List Section */}
-          <View style={styles.section}>
-            <Text style={styles.sectionHeader}>Available Stores</Text>
-            <ScrollView 
-              showsVerticalScrollIndicator={false}
-              contentContainerStyle={styles.scrollContent}
+          <Animated.View style={[styles.mapContainer, mapExpanded && styles.mapExpanded]}>
+            <MapView
+              style={styles.map}
+              region={mapRegion}
+              showsUserLocation={true}
+              showsMyLocationButton={true}
             >
-              {filteredStores.map((store, index) => (
-                <AnimatedPressable
-                  key={store.id}
-                  entering={FadeInDown.delay(index * 100)}
-                  style={styles.storeCard}
-                  onPress={() => handleStorePress(store.id)}
-                >
-                  <Image source={{ uri: store.image }} style={styles.storeImage} />
-                  <LinearGradient
-                    colors={['rgba(0,0,0,0.5)', 'transparent']}
-                    style={styles.imageOverlay}
-                  />
-                  <View style={styles.storeInfo}>
-                    <Typography variant="h3" style={styles.storeName}>
-                      {store.name}
+              {filteredStores.map((store) => {
+                if (!store.coordinates) return null;
+                
+                return (
+                  <Marker
+                    key={store.id}
+                    coordinate={{
+                      latitude: store.coordinates.latitude,
+                      longitude: store.coordinates.longitude,
+                    }}
+                    title={store.name}
+                    description={store.address}
+                    onPress={() => handleStorePress(store.id)}
+                  >
+                    <View style={styles.markerContainer}>
+                      <View style={styles.marker}>
+                        <Feather name="shopping-bag" size={20} color="#fff" />
+                      </View>
+                    </View>
+                  </Marker>
+                );
+              })}
+            </MapView>
+            <Button 
+              mode="contained" 
+              onPress={() => setMapExpanded(!mapExpanded)}
+              style={styles.expandButton}
+            >
+              {mapExpanded ? 'Collapse Map' : 'Expand Map'}
+            </Button>
+          </Animated.View>
+
+          <View style={styles.boldSeparator} />
+
+          <ScrollView 
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={styles.scrollContent}
+          >
+            {filteredStores.map((store, index) => (
+              <AnimatedPressable
+                key={store.id}
+                entering={FadeInDown.delay(index * 100)}
+                style={styles.storeCard}
+                onPress={() => handleStorePress(store.id)}
+              >
+                <Image source={{ uri: store.image }} style={styles.storeImage} />
+                <LinearGradient
+                  colors={['rgba(0,0,0,0.5)', 'transparent']}
+                  style={styles.imageOverlay}
+                />
+                <View style={styles.storeInfo}>
+                  <Typography variant="h3" style={styles.storeName}>
+                    {store.name}
+                  </Typography>
+                  <View style={styles.ratingContainer}>
+                    <Feather name="star" size={16} color="#FFB800" />
+                    <Typography variant="p" style={styles.rating}>
+                      {store.rating} ({store.reviews} reviews)
                     </Typography>
-                    <View style={styles.ratingContainer}>
-                      <Feather name="star" size={16} color="#FFB800" />
-                      <Typography variant="p" style={styles.rating}>
-                        {store.rating} ({store.reviews} reviews)
-                      </Typography>
-                    </View>
-                    <View style={styles.locationContainer}>
-                      <Feather name="map-pin" size={16} color="#666" />
-                      <Typography variant="small" style={styles.address}>
-                        {store.address} • {store.distance} km
-                      </Typography>
-                    </View>
                   </View>
-                </AnimatedPressable>
-              ))}
-            </ScrollView>
-          </View>
+                  <View style={styles.locationContainer}>
+                    <Feather name="map-pin" size={16} color="#666" />
+                    <Typography variant="small" style={styles.address}>
+                      {store.address} • {store.distance} km
+                    </Typography>
+                  </View>
+                </View>
+              </AnimatedPressable>
+            ))}
+          </ScrollView>
         </ThemedView>
       </ThemedView>
     </>
@@ -286,7 +277,7 @@ const styles = StyleSheet.create({
   contentContainer: {
     flex: 1,
     paddingHorizontal: 16,
-    paddingTop: 140, // Increased padding to account for header height
+    paddingTop: 140,
   },
   headerButtons: {
     flexDirection: 'row',
@@ -314,25 +305,14 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#E5E7EB',
   },
-  section: {
-    marginBottom: 16,
-  },
-  sectionHeader: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#1F2937',
-    marginBottom: 8,
-  },
-  separator: {
-    height: 1,
-    backgroundColor: '#E5E7EB',
-    marginVertical: 16,
-  },
   mapContainer: {
     height: 200,
-    marginBottom: 16,
+    margin: 16,
     borderRadius: 16,
     overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    backgroundColor: '#F0F0F0',
   },
   mapExpanded: {
     height: 400,
@@ -346,6 +326,11 @@ const styles = StyleSheet.create({
     right: 16,
     borderRadius: 20,
   },
+  boldSeparator: {
+    height: 2,
+    backgroundColor: '#333',
+    marginVertical: 16,
+  },
   scrollContent: {
     padding: 16,
     gap: 16,
@@ -355,6 +340,8 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     overflow: 'hidden',
     elevation: 4,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
   },
   storeImage: {
     width: '100%',
