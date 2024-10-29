@@ -7,6 +7,9 @@ import { TextInput, Button, RadioButton, Surface } from 'react-native-paper';
 import { BlurView } from 'expo-blur';
 import { generateOrderId } from '@/utils/orderUtils';
 import { Dropdown } from 'react-native-element-dropdown';
+import * as DocumentPicker from 'expo-document-picker';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useCart } from '@/app/contexts/CartContext';
 
 type PaymentMethodType = 'crypto' | 'eft';
 type CryptoType = 'btc' | 'erc20' | 'trc20';
@@ -23,6 +26,8 @@ export default function CheckoutScreen() {
     address: '',
   });
   const [selectedCrypto, setSelectedCrypto] = useState<CryptoType>('btc');
+  const [paymentProof, setPaymentProof] = useState<string | null>(null);
+  const { state, dispatch } = useCart();
 
   const CRYPTO_OPTIONS: CryptoOption[] = [
     { label: 'Bitcoin (BTC)', value: 'btc' },
@@ -55,6 +60,21 @@ export default function CheckoutScreen() {
   };
 
   const handleSubmit = () => {
+    const orderData = {
+      id: orderId,
+      items: state.items,
+      total: state.total,
+      status: 'ordered',
+      date: new Date().toLocaleDateString(),
+      shippingAddress: form.address,
+    };
+
+    // Store order data in AsyncStorage for persistence
+    AsyncStorage.setItem(`order_${orderId}`, JSON.stringify(orderData));
+
+    // Clear the cart after successful order
+    dispatch({ type: 'CLEAR_CART' });
+
     router.push({
       pathname: '/checkout/success',
       params: { orderId }
@@ -92,6 +112,15 @@ export default function CheckoutScreen() {
           {PAYMENT_DETAILS.crypto[selectedCrypto as CryptoType].walletAddress}
         </Text>
       </Typography>
+      
+      <Button
+        mode="outlined"
+        onPress={handleFilePick}
+        style={styles.uploadButton}
+      >
+        {paymentProof ? `Selected: ${paymentProof}` : 'Upload Payment Proof'}
+      </Button>
+      
       <Image 
         source={PAYMENT_DETAILS.crypto[selectedCrypto as CryptoType].qrCodeUrl}
         style={styles.qrCode}
@@ -99,6 +128,21 @@ export default function CheckoutScreen() {
       />
     </View>
   );
+
+  const handleFilePick = async () => {
+    try {
+      const result = await DocumentPicker.getDocumentAsync({
+        type: '*/*',
+        copyToCacheDirectory: true,
+      });
+
+      if (result.assets && result.assets.length > 0) {
+        setPaymentProof(result.assets[0].name);
+      }
+    } catch (error) {
+      console.error('Error picking document:', error);
+    }
+  };
 
   return (
     <>
@@ -310,5 +354,9 @@ const styles = StyleSheet.create({
   },
   addressTitle: {
     marginTop: 16,
+  },
+  uploadButton: {
+    marginTop: 16,
+    marginBottom: 16,
   },
 });

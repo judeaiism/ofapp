@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Stack, useLocalSearchParams } from 'expo-router';
 import { StyleSheet, ScrollView, View } from 'react-native';
 import { ThemedView } from '@/components/ThemedView';
@@ -6,6 +6,7 @@ import { Typography } from '@/components/ui/typography';
 import { BlurView } from 'expo-blur';
 import { Feather } from '@expo/vector-icons';
 import { OptimizedImage } from '@/components/OptimizedImage';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 interface OrderItem {
   id: number;
@@ -17,7 +18,7 @@ interface OrderItem {
 
 interface OrderDetails {
   id: string;
-  status: 'pending' | 'processing' | 'shipped' | 'delivered';
+  status: 'ordered' | 'processing' | 'shipped' | 'delivered';
   date: string;
   total: number;
   items: OrderItem[];
@@ -27,36 +28,34 @@ interface OrderDetails {
 
 export default function OrderDetailsScreen() {
   const { id } = useLocalSearchParams();
+  const [orderDetails, setOrderDetails] = useState<OrderDetails | null>(null);
 
-  // In a real app, you would fetch this data from your backend
-  const orderDetails: OrderDetails = {
-    id: id as string,
-    status: 'processing',
-    date: new Date().toLocaleDateString(),
-    total: 79.98,
-    items: [
-      {
-        id: 1,
-        name: "Red Rose Bouquet",
-        price: 49.99,
-        quantity: 1,
-        image: "https://images.unsplash.com/photo-1548386135-000f8f8b6308"
-      },
-      {
-        id: 2,
-        name: "Sunflower Bundle",
-        price: 29.99,
-        quantity: 1,
-        image: "https://images.unsplash.com/photo-1551945326-df678a97c3af"
+  useEffect(() => {
+    const loadOrderDetails = async () => {
+      try {
+        const storedOrder = await AsyncStorage.getItem(`order_${id}`);
+        if (storedOrder) {
+          setOrderDetails(JSON.parse(storedOrder));
+        }
+      } catch (error) {
+        console.error('Error loading order details:', error);
       }
-    ],
-    shippingAddress: "123 Main St, Apt 4B, New York, NY 10001",
-    trackingNumber: "1Z999AA1234567890"
-  };
+    };
+
+    loadOrderDetails();
+  }, [id]);
+
+  if (!orderDetails) {
+    return (
+      <ThemedView style={styles.container}>
+        <Typography variant="h2">Loading order details...</Typography>
+      </ThemedView>
+    );
+  }
 
   const getStatusColor = (status: OrderDetails['status']) => {
     switch (status) {
-      case 'pending': return '#FFA000';
+      case 'ordered': return '#FFA000';
       case 'processing': return '#1976D2';
       case 'shipped': return '#7B1FA2';
       case 'delivered': return '#388E3C';
