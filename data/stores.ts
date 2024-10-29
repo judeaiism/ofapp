@@ -74,123 +74,75 @@ export const CAPE_TOWN_STORES: Store[] = [
         category: "Bouquets",
         inStock: true
       },
-      // Add more products...
-    ]
-  },
-  {
-    id: 2,
-    name: "Wiid Accessories & More",
-    rating: 4.7,
-    reviews: 128,
-    image: "https://images.unsplash.com/photo-1490312278390-ab64016e0aa9",
-    coverImages: [
-      "https://images.unsplash.com/photo-1490312278390-ab64016e0aa9"
-    ],
-    distance: "1.8",
-    address: "Shop 7, V&A Waterfront, Cape Town",
-    coordinates: {
-      latitude: -33.9033,
-      longitude: 18.4197
-    },
-    description: "Your one-stop shop for all wiid accessories, vases, ribbons, and flower care products",
-    hours: {
-      monday: "09:00-18:00",
-      tuesday: "09:00-18:00",
-      wednesday: "09:00-18:00",
-      thursday: "09:00-18:00",
-      friday: "09:00-19:00",
-      saturday: "09:00-17:00",
-      sunday: "10:00-14:00"
-    },
-    contact: {
-      phone: "+27 21 424 9876",
-      email: "info@wiidaccessories.co.za",
-      website: "https://wiidaccessories.co.za",
-      whatsapp: "+27 82 345 6789"
-    },
-    social: {
-      instagram: "@wiidaccessoriescpt",
-      facebook: "WiidAccessoriesCPT",
-      twitter: "@wiidaccessoriescpt"
-    },
-    services: [
-      "Vase Customization",
-      "Gift Wrapping",
-      "Bulk Orders",
-      "Professional Advice"
-    ],
-    specialties: [
-      "Premium Vases",
-      "Flower Care Products",
-      "Decorative Accessories"
-    ],
-    priceRange: "$$",
-    paymentMethods: [
-      "Credit Card",
-      "Debit Card",
-      "Cash",
-      "EFT",
-      "Snapscan"
-    ],
-    deliveryInfo: {
-      available: true,
-      fee: 45,
-      minOrder: 150,
-      areas: ["City Bowl", "Atlantic Seaboard", "Southern Suburbs"],
-      estimatedTime: "30-45 minutes"
-    },
-    featured: true,
-    products: [
-      {
-        id: 1,
-        name: "Crystal Glass Vase",
-        price: 299.99,
-        image: "https://images.unsplash.com/photo-1581783342308-f792dbdd27c5",
-        description: "Elegant crystal vase perfect for long-stem roses",
-        category: "Vases",
-        inStock: true
-      },
       {
         id: 2,
-        name: "Ceramic Plant Pot",
-        price: 199.99,
-        image: "https://images.unsplash.com/photo-1485955900006-10f4d324d411",
-        description: "Modern ceramic pot with drainage hole",
-        category: "Containers",
+        name: "Spring Garden Mix",
+        price: 399.99,
+        image: "https://images.unsplash.com/photo-1562690868-60bbe7293e94",
+        description: "Colorful mix of seasonal spring flowers",
+        category: "Bouquets",
         inStock: true
       },
       {
         id: 3,
-        name: "Flower Food Pack",
-        price: 49.99,
-        image: "https://images.unsplash.com/photo-1620503374956-c942862f0372",
-        description: "Professional flower food for longer lasting blooms",
-        category: "Care Products",
+        name: "Elegant White Orchids",
+        price: 599.99,
+        image: "https://images.unsplash.com/photo-1567696153798-9111f9cd3d0d",
+        description: "Pure white orchids in a ceramic pot",
+        category: "Plants",
         inStock: true
       },
       {
-        id: 40,
-        name: "Decorative Pebbles",
-        price: 79.99,
-        image: "https://images.unsplash.com/photo-1597484661643-2f5fef640dd1",
-        description: "Natural decorative pebbles for vase arrangements",
-        category: "Decorative",
+        id: 4,
+        name: "Tropical Paradise",
+        price: 449.99,
+        image: "https://images.unsplash.com/photo-1561181286-d3fee7d55364",
+        description: "Exotic arrangement with birds of paradise",
+        category: "Bouquets",
+        inStock: true
+      },
+      {
+        id: 5,
+        name: "Succulent Garden",
+        price: 299.99,
+        image: "https://images.unsplash.com/photo-1446071103084-c257b5f70672",
+        description: "Mixed succulent arrangement in terrarium",
+        category: "Plants",
+        inStock: true
+      },
+      {
+        id: 6,
+        name: "Birthday Celebration",
+        price: 449.99,
+        image: "https://images.unsplash.com/photo-1561181286-d3fee7d55364",
+        description: "Festive arrangement perfect for birthdays",
+        category: "Bouquets",
+        inStock: true
+      },
+      {
+        id: 7,
+        name: "Peace Lily Plant",
+        price: 349.99,
+        image: "https://images.unsplash.com/photo-1567696153798-9111f9cd3d0d",
+        description: "Air-purifying peace lily in decorative pot",
+        category: "Plants",
+        inStock: true
+      },
+      {
+        id: 8,
+        name: "Luxury Valentine's Special",
+        price: 699.99,
+        image: "https://images.unsplash.com/photo-1548386135-000f8f8b6308",
+        description: "Premium roses with chocolates and wine",
+        category: "Special",
         inStock: true
       }
     ]
   }
 ];
 
-// You can add more regions as needed
-export const JOHANNESBURG_STORES: Store[] = [
-  // ... Johannesburg stores
-];
-
 // Combine all stores for easy access
-export const ALL_STORES: Store[] = [
-  ...CAPE_TOWN_STORES,
-  ...JOHANNESBURG_STORES
-];
+export const ALL_STORES: Store[] = [...CAPE_TOWN_STORES];
 
 // Helper function to get store by ID
 export function getStoreById(id: number): Store | undefined {
@@ -203,7 +155,7 @@ export function getStoresByRegion(region: 'cape-town' | 'johannesburg'): Store[]
     case 'cape-town':
       return CAPE_TOWN_STORES;
     case 'johannesburg':
-      return JOHANNESBURG_STORES;
+      return ALL_STORES;
     default:
       return ALL_STORES;
   }
