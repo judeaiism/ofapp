@@ -3,10 +3,10 @@ import { Store } from '@/types/store';
 // Import images
 const storeImages = {
   onlyWiid: {
-    main: require('@/assets/images/stores/only-wiid/store.jpg'),
+    main: require('../assets/images/stores/only-wiid/store.jpg'),
     covers: [
-      require('@/assets/images/stores/only-wiid/cover-1.jpg'),
-      require('@/assets/images/stores/only-wiid/cover-2.jpg'),
+      require('../assets/images/stores/only-wiid/cover-1.jpg'),
+      require('../assets/images/stores/only-wiid/cover-2.jpg'),
     ],
     products: {
       product1: require('@/assets/images/stores/only-wiid/products/product-1.jpg'),
