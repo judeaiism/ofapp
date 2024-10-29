@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Stack, useLocalSearchParams, router } from 'expo-router';
-import { StyleSheet, ScrollView, View, Image, Text } from 'react-native';
+import { StyleSheet, ScrollView, View, Image, Text, Pressable, Alert } from 'react-native';
 import { ThemedView } from '@/components/ThemedView';
 import { Typography } from '@/components/ui/typography';
 import { TextInput, Button, RadioButton, Surface } from 'react-native-paper';
@@ -10,10 +10,27 @@ import { Dropdown } from 'react-native-element-dropdown';
 import * as DocumentPicker from 'expo-document-picker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useCart } from '@/app/contexts/CartContext';
+import { doc, setDoc } from 'firebase/firestore';
+import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
+import { db, storage } from '@/config/firebase'; // Ensure you have this config file
 
 type PaymentMethodType = 'crypto' | 'eft';
 type CryptoType = 'btc' | 'erc20' | 'trc20';
 type CryptoOption = { label: string; value: CryptoType };
+
+interface DocumentAsset {
+  uri: string;
+  name: string;
+  mimeType?: string;
+  size?: number;
+}
+
+// Add upload state type
+interface UploadState {
+  progress: number;
+  error: Error | null;
+  state: 'running' | 'paused' | 'error' | 'success';
+}
 
 export default function CheckoutScreen() {
   const { storeId, products } = useLocalSearchParams();
@@ -27,6 +44,8 @@ export default function CheckoutScreen() {
   });
   const [selectedCrypto, setSelectedCrypto] = useState<CryptoType>('btc');
   const [paymentProof, setPaymentProof] = useState<string | null>(null);
+  const [paymentProofAsset, setPaymentProofAsset] = useState<DocumentAsset | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
   const { state, dispatch } = useCart();
 
   const CRYPTO_OPTIONS: CryptoOption[] = [
@@ -59,26 +78,84 @@ export default function CheckoutScreen() {
     },
   };
 
-  const handleSubmit = () => {
-    const orderData = {
-      id: orderId,
-      items: state.items,
-      total: state.total,
-      status: 'ordered',
-      date: new Date().toLocaleDateString(),
-      shippingAddress: form.address,
-    };
+  const createOrder = async (paymentProofUrl: string | null) => {
+    try {
+      // Create order document in Firestore
+      const orderData = {
+        id: orderId,
+        items: state.items,
+        total: state.total,
+        status: 'ordered',
+        date: new Date().toISOString(),
+        customerInfo: {
+          name: form.name,
+          email: form.email,
+          phone: form.phone,
+          address: form.address,
+        },
+        payment: {
+          method: paymentMethod,
+          ...(paymentMethod === 'crypto' && { cryptoType: selectedCrypto }),
+          proofUrl: paymentProofUrl,
+        },
+      };
 
-    // Store order data in AsyncStorage for persistence
-    AsyncStorage.setItem(`order_${orderId}`, JSON.stringify(orderData));
+      // Save to Firestore
+      await setDoc(doc(db, 'orders', orderId), orderData);
 
-    // Clear the cart after successful order
-    dispatch({ type: 'CLEAR_CART' });
+      // Clear cart and redirect
+      dispatch({ type: 'CLEAR_CART' });
+      router.push({
+        pathname: '/checkout/success',
+        params: { orderId }
+      });
+    } catch (error) {
+      console.error('Error creating order:', error);
+      throw error; // Re-throw to be handled by the parent try-catch
+    }
+  };
 
-    router.push({
-      pathname: '/checkout/success',
-      params: { orderId }
-    });
+  const handleSubmit = async () => {
+    try {
+      // Upload payment proof if exists
+      let paymentProofUrl = null;
+      if (paymentProofAsset) {
+        try {
+          setIsLoading(true); // Add loading state
+          paymentProofUrl = await uploadPaymentProof(paymentProofAsset);
+        } catch (uploadError) {
+          console.error('Payment proof upload failed:', uploadError);
+          // Show error to user but continue with order
+          Alert.alert(
+            'Upload Warning',
+            'Payment proof upload failed. Do you want to continue without the proof?',
+            [
+              {
+                text: 'Cancel',
+                style: 'cancel',
+                onPress: () => setIsLoading(false)
+              },
+              {
+                text: 'Continue',
+                onPress: async () => {
+                  // Continue with order creation
+                  await createOrder(null);
+                }
+              }
+            ]
+          );
+          return;
+        }
+      }
+
+      await createOrder(paymentProofUrl);
+
+    } catch (error) {
+      console.error('Error submitting order:', error);
+      Alert.alert('Error', 'Failed to submit order. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleCryptoChange = (item: CryptoOption) => {
@@ -138,10 +215,175 @@ export default function CheckoutScreen() {
 
       if (result.assets && result.assets.length > 0) {
         setPaymentProof(result.assets[0].name);
+        // Store the full asset info for upload
+        setPaymentProofAsset(result.assets[0]);
       }
     } catch (error) {
       console.error('Error picking document:', error);
     }
+  };
+
+  const uploadPaymentProof = async (file: DocumentAsset): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      try {
+        // Validate file
+        if (!file?.uri) {
+          throw new Error('Invalid file');
+        }
+
+        // Create unique filename
+        const timestamp = Date.now();
+        const extension = file.uri.split('.').pop() || 'jpg';
+        const filename = `${timestamp}.${extension}`;
+
+        // Get storage reference
+        const storage = getStorage();
+        const storageRef = ref(storage, `payment_proofs/${orderId}/${filename}`);
+
+        // Create file metadata
+        const metadata = {
+          contentType: file.mimeType || 'image/jpeg',
+          customMetadata: {
+            'originalName': file.name,
+            'uploadedAt': new Date().toISOString()
+          }
+        };
+
+        // Start upload
+        fetch(file.uri)
+          .then(response => response.blob())
+          .then(blob => {
+            const uploadTask = uploadBytesResumable(storageRef, blob, metadata);
+
+            // Monitor upload
+            uploadTask.on('state_changed',
+              (snapshot) => {
+                // Track progress
+                const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                console.log('Upload is ' + progress + '% done');
+              },
+              (error) => {
+                // Handle errors
+                console.error('Upload error:', error);
+                switch (error.code) {
+                  case 'storage/unauthorized':
+                    reject(new Error('Unauthorized access'));
+                    break;
+                  case 'storage/canceled':
+                    reject(new Error('Upload canceled'));
+                    break;
+                  case 'storage/unknown':
+                    reject(new Error('Unknown error occurred'));
+                    break;
+                  default:
+                    reject(error);
+                }
+              },
+              async () => {
+                // Upload completed successfully
+                try {
+                  const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+                  resolve(downloadURL);
+                } catch (urlError) {
+                  reject(new Error('Failed to get download URL'));
+                }
+              }
+            );
+          })
+          .catch(error => {
+            console.error('File fetch error:', error);
+            reject(new Error('Failed to fetch file'));
+          });
+
+      } catch (error) {
+        console.error('Upload setup error:', error);
+        reject(error);
+      }
+    });
+  };
+
+  const renderPaymentMethodCards = () => (
+    <View style={styles.paymentMethodWrapper}>
+      <Surface style={styles.paymentMethodSurface}>
+        <RadioButton.Group 
+          onValueChange={handlePaymentMethodChange}
+          value={paymentMethod}
+        >
+          <View style={styles.paymentMethodContainer}>
+            <Pressable 
+              onPress={() => handlePaymentMethodChange('crypto')}
+              style={({ pressed }: { pressed: boolean }) => [
+                styles.paymentOption,
+                paymentMethod === 'crypto' && styles.selectedPayment,
+                pressed && styles.pressedPayment
+              ]}
+            >
+              <RadioButton value="crypto" />
+              <View style={styles.paymentOptionContent}>
+                <Typography variant="h4">Pay with Cryptocurrency</Typography>
+                <Typography variant="small" style={styles.paymentDescription}>
+                  Pay instantly using your crypto wallet
+                </Typography>
+              </View>
+            </Pressable>
+            
+            <Pressable
+              onPress={() => handlePaymentMethodChange('eft')}
+              style={({ pressed }: { pressed: boolean }) => [
+                styles.paymentOption,
+                paymentMethod === 'eft' && styles.selectedPayment,
+                pressed && styles.pressedPayment
+              ]}
+            >
+              <RadioButton value="eft" />
+              <View style={styles.paymentOptionContent}>
+                <Typography variant="h4">Pay with EFT</Typography>
+                <Typography variant="small" style={styles.paymentDescription}>
+                  Make a direct bank transfer
+                </Typography>
+              </View>
+            </Pressable>
+          </View>
+        </RadioButton.Group>
+      </Surface>
+    </View>
+  );
+
+  const renderEftPaymentDetails = () => (
+    <View style={styles.paymentDetails}>
+      <Typography variant="p" style={styles.paymentInfo}>
+        Bank Details:
+      </Typography>
+      {Object.entries(PAYMENT_DETAILS.eft).map(([key, value]) => (
+        <Typography key={key} variant="small">
+          <Text selectable style={styles.bankDetail}>
+            {key.charAt(0).toUpperCase() + key.slice(1)}: {value}
+          </Text>
+        </Typography>
+      ))}
+
+      <Button
+        mode="outlined"
+        onPress={handleFilePick}
+        style={styles.uploadButton}
+      >
+        {paymentProof ? `Selected: ${paymentProof}` : 'Upload Payment Proof'}
+      </Button>
+    </View>
+  );
+
+  // Add validation function
+  const isFormValid = () => {
+    const isContactInfoComplete = 
+      form.name.trim() !== '' &&
+      form.email.trim() !== '' &&
+      form.phone.trim() !== '' &&
+      form.address.trim() !== '';
+    
+    // Require payment proof for both payment methods
+    const isPaymentComplete = paymentProof !== null;
+
+    return isContactInfoComplete && isPaymentComplete;
   };
 
   return (
@@ -190,68 +432,17 @@ export default function CheckoutScreen() {
             Payment Method
           </Typography>
           
-          <View style={styles.paymentMethodWrapper}>
-            <Surface style={styles.paymentMethodSurface}>
-              <RadioButton.Group 
-                onValueChange={handlePaymentMethodChange}
-                value={paymentMethod}
-              >
-                <View style={styles.paymentMethodContainer}>
-                  <View 
-                    style={[
-                      styles.paymentOption,
-                      paymentMethod === 'crypto' && styles.selectedPayment
-                    ]}
-                  >
-                    <RadioButton value="crypto" />
-                    <View style={styles.paymentOptionContent}>
-                      <Typography variant="h4">Pay with Cryptocurrency</Typography>
-                      <Typography variant="small" style={styles.paymentDescription}>
-                        Pay instantly using your crypto wallet
-                      </Typography>
-                    </View>
-                  </View>
-                  
-                  <View 
-                    style={[
-                      styles.paymentOption,
-                      paymentMethod === 'eft' && styles.selectedPayment
-                    ]}
-                  >
-                    <RadioButton value="eft" />
-                    <View style={styles.paymentOptionContent}>
-                      <Typography variant="h4">Pay with EFT</Typography>
-                      <Typography variant="small" style={styles.paymentDescription}>
-                        Make a direct bank transfer
-                      </Typography>
-                    </View>
-                  </View>
-                </View>
-              </RadioButton.Group>
-            </Surface>
-          </View>
+          {renderPaymentMethodCards()}
 
           {paymentMethod === 'crypto' && renderCryptoPaymentDetails()}
 
-          {paymentMethod === 'eft' && (
-            <View style={styles.paymentDetails}>
-              <Typography variant="p" style={styles.paymentInfo}>
-                Bank Details:
-              </Typography>
-              {Object.entries(PAYMENT_DETAILS.eft).map(([key, value]) => (
-                <Typography key={key} variant="small">
-                  <Text selectable style={styles.bankDetail}>
-                    {key.charAt(0).toUpperCase() + key.slice(1)}: {value}
-                  </Text>
-                </Typography>
-              ))}
-            </View>
-          )}
+          {paymentMethod === 'eft' && renderEftPaymentDetails()}
 
           <Button
             mode="contained"
             onPress={handleSubmit}
             style={styles.submitButton}
+            disabled={!isFormValid()}
           >
             Confirm Order
           </Button>
@@ -313,7 +504,7 @@ const styles = StyleSheet.create({
     marginTop: 16,
   },
   bankDetail: {
-    marginBottom: 4,
+    marginBottom: 8,
   },
   paymentMethodContainer: {
     borderRadius: 12,
@@ -324,6 +515,7 @@ const styles = StyleSheet.create({
     padding: 16,
     borderBottomWidth: 1,
     borderBottomColor: 'rgba(0,0,0,0.1)',
+    cursor: 'pointer',
   },
   selectedPayment: {
     backgroundColor: 'rgba(0,0,0,0.05)',
@@ -357,6 +549,9 @@ const styles = StyleSheet.create({
   },
   uploadButton: {
     marginTop: 16,
-    marginBottom: 16,
+    marginBottom: 8,
+  },
+  pressedPayment: {
+    opacity: 0.7,
   },
 });

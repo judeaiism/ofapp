@@ -15,6 +15,10 @@ import { Image as ExpoImage } from 'expo-image';
 const { width } = Dimensions.get('window');
 const AnimatedView = Animated.createAnimatedComponent(View);
 
+export const unstable_settings = {
+  initialRouteName: 'Home',
+};
+
 export default function HomeScreen() {
   const [searchQuery, setSearchQuery] = React.useState('');
 
@@ -40,10 +44,10 @@ export default function HomeScreen() {
       <ThemedView style={styles.container}>
         <ThemedView style={styles.titleContainer}>
           <Typography variant="h1" style={styles.title}>
-            Only Wiid
+            only wiiD
           </Typography>
           <Typography variant="h4" style={styles.subtitle}>
-            Fresh flowers, delivered to you
+            Bringing nature's beauty to your doorstep
           </Typography>
         </ThemedView>
 
@@ -51,7 +55,7 @@ export default function HomeScreen() {
           <ModernButton 
             icon={<Feather name="shopping-bag" size={20} color="white" />}
             onPress={() => router.replace('/stores')}>
-            Browse Wiid Stores
+            Browse Wiid App
           </ModernButton>
 
           <ModernButton 

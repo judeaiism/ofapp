@@ -5,9 +5,18 @@ import { router } from 'expo-router';
 import { useCart } from '@/app/contexts/CartContext';
 import { Typography } from '@/components/ui/typography';
 
+interface CartItem {
+  id: number;
+  storeId: number;
+  name: string;
+  price: number;
+  quantity: number;
+  image: any; // Update type to allow for both required images and URLs
+}
+
 export function CartButton() {
   const { state } = useCart();
-  const itemCount = state.items.reduce((sum: number, item: { quantity: number }) => sum + item.quantity, 0);
+  const itemCount = state.items.reduce((sum: number, item: CartItem) => sum + item.quantity, 0);
 
   return (
     <Pressable 

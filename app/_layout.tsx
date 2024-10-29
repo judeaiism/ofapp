@@ -50,6 +50,7 @@ export default function RootLayout() {
                 },
               }}
             >
+              <Stack.Screen name="index" options={{ headerShown: false }} />
               <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
               <Stack.Screen name="store/[id]" />
               <Stack.Screen name="(admin)" options={{ headerShown: false }} />

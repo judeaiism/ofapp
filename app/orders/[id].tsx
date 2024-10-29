@@ -124,7 +124,7 @@ export default function OrderDetailsScreen() {
                     Quantity: {item.quantity}
                   </Typography>
                   <Typography variant="p" style={styles.itemPrice}>
-                    ${item.price.toFixed(2)}
+                    R{item.price.toFixed(2)}
                   </Typography>
                 </View>
               </View>
@@ -148,7 +148,7 @@ export default function OrderDetailsScreen() {
             </Typography>
             <View style={styles.summaryRow}>
               <Typography variant="p">Subtotal</Typography>
-              <Typography variant="p">${orderDetails.total.toFixed(2)}</Typography>
+              <Typography variant="p">R{orderDetails.total.toFixed(2)}</Typography>
             </View>
             <View style={styles.summaryRow}>
               <Typography variant="p">Shipping</Typography>
@@ -156,7 +156,7 @@ export default function OrderDetailsScreen() {
             </View>
             <View style={[styles.summaryRow, styles.totalRow]}>
               <Typography variant="h3">Total</Typography>
-              <Typography variant="h3">${orderDetails.total.toFixed(2)}</Typography>
+              <Typography variant="h3">R{orderDetails.total.toFixed(2)}</Typography>
             </View>
           </View>
         </ScrollView>

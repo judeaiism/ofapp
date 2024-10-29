@@ -1,29 +1,25 @@
 import React from 'react';
-import { StyleSheet } from 'react-native';
-import { OptimizedImage } from './OptimizedImage';
+import { Image, ImageStyle, StyleProp } from 'react-native';
 
 interface ProductImageProps {
   source: string | number;
-  style?: any;
+  style?: StyleProp<ImageStyle>;
+  resizeMode?: 'cover' | 'contain' | 'stretch' | 'center';
 }
 
-export function ProductImage({ source, style }: ProductImageProps) {
-  // Convert number (local require) to string by accessing the default property
-  // Remote URLs (strings) are passed through unchanged
-  const imageUri = typeof source === 'number' ? source.toString() : source;
+export function ProductImage({ source, style, resizeMode = 'cover' }: ProductImageProps) {
+  // Handle the image source properly
+  const imageSource = typeof source === 'string' 
+    ? { uri: source }
+    : source;
 
   return (
-    <OptimizedImage
-      uri={imageUri}
-      style={[styles.image, style]}
+    <Image
+      source={imageSource}
+      style={style}
+      resizeMode={resizeMode}
+      // Add default placeholder while image loads
+      defaultSource={require('@/assets/images/placeholder.png')}
     />
   );
-}
-
-const styles = StyleSheet.create({
-  image: {
-    width: '100%',
-    height: '100%',
-    backgroundColor: '#f5f5f5',
-  },
-}); 
+} 

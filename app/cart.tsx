@@ -8,20 +8,27 @@ import { BlurView } from 'expo-blur';
 import { Feather } from '@expo/vector-icons';
 import { useCart } from '@/app/contexts/CartContext';
 import { router } from 'expo-router';
-import { OptimizedImage } from '@/components/OptimizedImage';
+import { ProductImage } from '@/components/ProductImage';
 
-// Add interface for CartItem
+// Update CartItem interface to be more specific about image type
 interface CartItem {
   id: number;
   storeId: number;
   name: string;
   price: number;
   quantity: number;
-  image: string;
+  image: string | number; // Update to only allow string (URI) or number (require)
 }
 
 export default function CartScreen() {
   const { state, dispatch } = useCart();
+
+  // Fix router.push type by using proper path typing
+  const handleBrowseStores = () => {
+    router.push({
+      pathname: "/stores"
+    } as const);
+  };
 
   const handleCheckout = () => {
     router.push({
@@ -63,7 +70,7 @@ export default function CartScreen() {
             </Typography>
             <Button
               mode="contained"
-              onPress={() => router.push('/(tabs)/stores')}
+              onPress={handleBrowseStores}
               style={styles.shopButton}
             >
               Browse Stores
@@ -74,16 +81,17 @@ export default function CartScreen() {
             <ScrollView style={styles.itemList}>
               {state.items.map((item: CartItem) => (
                 <View key={item.id} style={styles.cartItem}>
-                  <OptimizedImage 
-                    uri={item.image} 
+                  <ProductImage 
+                    source={item.image}
                     style={styles.itemImage}
+                    resizeMode="cover"
                   />
                   <View style={styles.itemInfo}>
                     <Typography variant="p" style={styles.itemName}>
                       {item.name}
                     </Typography>
                     <Typography variant="p" style={styles.itemPrice}>
-                      ${item.price.toFixed(2)}
+                      R{item.price.toFixed(2)}
                     </Typography>
                     <View style={styles.quantityControls}>
                       <Button
@@ -116,7 +124,7 @@ export default function CartScreen() {
               <View style={styles.totalContainer}>
                 <Typography variant="h3">Total:</Typography>
                 <Typography variant="h2" style={styles.totalAmount}>
-                  ${state.total.toFixed(2)}
+                  R{state.total.toFixed(2)}
                 </Typography>
               </View>
               <Button
@@ -172,6 +180,7 @@ const styles = StyleSheet.create({
     height: 80,
     borderRadius: 8,
     backgroundColor: '#f5f5f5',
+    overflow: 'hidden',
   },
   itemInfo: {
     flex: 1,

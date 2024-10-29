@@ -3,7 +3,7 @@ import { Stack } from 'expo-router';
 import { StyleSheet, ScrollView, View, Image, Pressable, ActivityIndicator } from 'react-native';
 import { Typography } from '@/components/ui/typography';
 import { ThemedView } from '@/components/ThemedView';
-import { Searchbar, Menu, Button } from 'react-native-paper';
+import { Searchbar, Button } from 'react-native-paper';
 import { Feather } from '@expo/vector-icons';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { router } from 'expo-router';
@@ -22,7 +22,6 @@ export default function StoresScreen() {
   const [searchQuery, setSearchQuery] = useState('');
   const [filteredStores, setFilteredStores] = useState<Store[]>(ALL_STORES);
   const [sortBy, setSortBy] = useState<'distance' | 'rating'>('distance');
-  const [menuVisible, setMenuVisible] = useState(false);
   const [location, setLocation] = useState<Location.LocationObject | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [mapExpanded, setMapExpanded] = useState(false);
@@ -102,7 +101,7 @@ export default function StoresScreen() {
     <>
       <Stack.Screen 
         options={{ 
-          headerTitle: "Wiid Stores",
+          headerTitle: "W𖠞𖠞d Stores",
           headerTransparent: true,
           headerStyle: {
             backgroundColor: 'transparent',
@@ -127,33 +126,6 @@ export default function StoresScreen() {
           ),
           headerRight: () => (
             <View style={styles.headerButtons}>
-              <Menu
-                visible={menuVisible}
-                onDismiss={() => setMenuVisible(false)}
-                anchor={
-                  <ModernButton
-                    variant="outline"
-                    onPress={() => setMenuVisible(true)}
-                  >
-                    <Feather name="filter" size={24} color="#666" />
-                  </ModernButton>
-                }
-              >
-                <Menu.Item
-                  onPress={() => {
-                    setSortBy('distance');
-                    setMenuVisible(false);
-                  }}
-                  title="Sort by Distance"
-                />
-                <Menu.Item
-                  onPress={() => {
-                    setSortBy('rating');
-                    setMenuVisible(false);
-                  }}
-                  title="Sort by Rating"
-                />
-              </Menu>
               <CartButton />
             </View>
           ),
@@ -288,7 +260,7 @@ const styles = StyleSheet.create({
   contentContainer: {
     flex: 1,
     paddingHorizontal: 16,
-    paddingTop: 140,
+    paddingTop: 21,
   },
   headerButtons: {
     flexDirection: 'row',

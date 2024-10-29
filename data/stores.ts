@@ -47,9 +47,9 @@ export const CAPE_TOWN_STORES: Store[] = [
       sunday: "Closed"
     },
     contact: {
-      phone: "+27 21 424 5344",
-      email: "info@onlyflowers.co.za",
-      website: "https://onlyflowers.co.za",
+      phone: '+27 1-800 WiiD',
+      email: "info@onlywiid.co.za",
+      website: "https://onlywiid.co.za",
       whatsapp: "+27 82 123 4567"
     },
     social: {
@@ -76,17 +76,17 @@ export const CAPE_TOWN_STORES: Store[] = [
     ],
     deliveryInfo: {
       available: true,
-      fee: 50,
-      minOrder: 200,
-      areas: ["City Bowl", "Atlantic Seaboard", "Southern Suburbs"],
+      fee: 0,
+      minOrder: 1000,
+      areas: ["City Bowl", "Camps Bay", "SeaPoint", "Sandton", "Green Point", "Capetown CBD", "Atlantic Seaboard", "Southern Suburbs"],
       estimatedTime: "45-60 minutes"
     },
     featured: true,
     products: [
       {
         id: 1,
-        name: "Premium Rose Bouquet",
-        price: 499.99,
+        name: "Black Afghan 11g",
+        price: 3663.99,
         image: storeImages.onlyWiid.products.product1,
         description: "Luxurious arrangement of fresh red roses",
         category: "Bouquets",
@@ -94,8 +94,8 @@ export const CAPE_TOWN_STORES: Store[] = [
       },
       {
         id: 2,
-        name: "Spring Garden Mix",
-        price: 399.99,
+        name: "Power Outage 14g",
+        price: 3500.99,
         image: storeImages.onlyWiid.products.product2,
         description: "Colorful mix of seasonal spring flowers",
         category: "Bouquets",
@@ -103,8 +103,8 @@ export const CAPE_TOWN_STORES: Store[] = [
       },
       {
         id: 3,
-        name: "Elegant White Orchids",
-        price: 599.99,
+        name: "Elegant White orchids 14g",
+        price: 3500.99,
         image: storeImages.onlyWiid.products.product3,
         description: "Pure white orchids in a ceramic pot",
         category: "Plants",
@@ -112,8 +112,8 @@ export const CAPE_TOWN_STORES: Store[] = [
       },
       {
         id: 4,
-        name: "Tropical Paradise",
-        price: 449.99,
+        name: "Cocktail 14g",
+        price: 2800.99,
         image: storeImages.onlyWiid.products.product4,
         description: "Exotic arrangement with birds of paradise",
         category: "Bouquets",
@@ -139,8 +139,8 @@ export const CAPE_TOWN_STORES: Store[] = [
       },
       {
         id: 7,
-        name: "Peace Lily Plant",
-        price: 349.99,
+        name: "Khalifa Kush",
+        price: 800.99,
         image: storeImages.onlyWiid.products.product7,
         description: "Air-purifying peace lily in decorative pot",
         category: "Plants",
@@ -149,7 +149,7 @@ export const CAPE_TOWN_STORES: Store[] = [
       {
         id: 8,
         name: "Luxury Valentine's Special",
-        price: 699.99,
+        price: 999.99,
         image: storeImages.onlyWiid.products.product8,
         description: "Premium roses with chocolates and wine",
         category: "Special",
