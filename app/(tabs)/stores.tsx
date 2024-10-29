@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Stack } from 'expo-router';
-import { StyleSheet, ScrollView, View, Image, Pressable } from 'react-native';
+import { StyleSheet, ScrollView, View, Image, Pressable, Text } from 'react-native';
 import { Typography } from '@/components/ui/typography';
 import { ThemedView } from '@/components/ThemedView';
 import { Searchbar, Menu, Button } from 'react-native-paper';
@@ -8,7 +8,7 @@ import { Feather } from '@expo/vector-icons';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { router } from 'expo-router';
 import * as Location from 'expo-location';
-import MapView, { Marker } from 'react-native-maps';
+import MapView, { Marker, Region } from 'react-native-maps';
 import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
 import { Button as ModernButton } from '@/components/ui/button';
@@ -33,12 +33,13 @@ interface Store {
 
 export default function StoresScreen() {
   const [searchQuery, setSearchQuery] = useState('');
-  const [filteredStores, setFilteredStores] = useState(ALL_STORES);
+  const [filteredStores, setFilteredStores] = useState<Store[]>(ALL_STORES);
   const [sortBy, setSortBy] = useState<'distance' | 'rating'>('distance');
   const [menuVisible, setMenuVisible] = useState(false);
   const [location, setLocation] = useState<Location.LocationObject | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [mapExpanded, setMapExpanded] = useState(false);
+  const [mapRegion, setMapRegion] = useState<Region | undefined>(undefined);
 
   useEffect(() => {
     (async () => {
@@ -50,25 +51,35 @@ export default function StoresScreen() {
 
       let location = await Location.getCurrentPositionAsync({});
       setLocation(location);
+
+      setMapRegion({
+        latitude: location.coords.latitude,
+        longitude: location.coords.longitude,
+        latitudeDelta: 0.0922,
+        longitudeDelta: 0.0421,
+      });
     })();
   }, []);
 
-  const calculateDistance = useCallback((store: Store) => {
-    if (!location?.coords || !store.coordinates) return Infinity;
-    
-    const R = 6371;
-    const lat1 = location.coords.latitude * Math.PI / 180;
-    const lat2 = store.coordinates.latitude * Math.PI / 180;
-    const dLat = (store.coordinates.latitude - location.coords.latitude) * Math.PI / 180;
-    const dLon = (store.coordinates.longitude - location.coords.longitude) * Math.PI / 180;
+  const calculateDistance = useCallback(
+    (store: Store) => {
+      if (!location?.coords || !store.coordinates) return Infinity;
+      
+      const R = 6371;
+      const lat1 = location.coords.latitude * Math.PI / 180;
+      const lat2 = store.coordinates.latitude * Math.PI / 180;
+      const dLat = (store.coordinates.latitude - location.coords.latitude) * Math.PI / 180;
+      const dLon = (store.coordinates.longitude - location.coords.longitude) * Math.PI / 180;
 
-    const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
-              Math.cos(lat1) * Math.cos(lat2) *
-              Math.sin(dLon/2) * Math.sin(dLon/2);
-    
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-    return R * c;
-  }, [location]);
+      const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                Math.cos(lat1) * Math.cos(lat2) *
+                Math.sin(dLon/2) * Math.sin(dLon/2);
+      
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+      return R * c;
+    },
+    [location]
+  );
 
   useEffect(() => {
     let result = [...ALL_STORES];
@@ -175,86 +186,92 @@ export default function StoresScreen() {
             elevation={0} // Remove default elevation
           />
           
-          <Animated.View style={[styles.mapContainer, mapExpanded && styles.mapExpanded]}>
-            <MapView
-              style={styles.map}
-              initialRegion={{
-                latitude: -33.9249,  // Cape Town city center
-                longitude: 18.4241,
-                latitudeDelta: 0.0922,
-                longitudeDelta: 0.0421,
-              }}
-              showsUserLocation={true}
-              showsMyLocationButton={true}
-            >
-              {filteredStores.map((store) => {
-                if (!store.coordinates) return null;
-                
-                return (
-                  <Marker
-                    key={store.id}
-                    coordinate={{
-                      latitude: store.coordinates.latitude,
-                      longitude: store.coordinates.longitude,
-                    }}
-                    title={store.name}
-                    description={store.address}
-                    onPress={() => handleStorePress(store.id)}
-                  >
-                    <View style={styles.markerContainer}>
-                      <View style={styles.marker}>
-                        <Feather name="shopping-bag" size={20} color="#fff" />
-                      </View>
-                    </View>
-                  </Marker>
-                );
-              })}
-            </MapView>
-            <Button 
-              mode="contained" 
-              onPress={() => setMapExpanded(!mapExpanded)}
-              style={styles.expandButton}
-            >
-              {mapExpanded ? 'Collapse Map' : 'Expand Map'}
-            </Button>
-          </Animated.View>
-          
-          <ScrollView 
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={styles.scrollContent}
-          >
-            {filteredStores.map((store, index) => (
-              <AnimatedPressable
-                key={store.id}
-                entering={FadeInDown.delay(index * 100)}
-                style={styles.storeCard}
-                onPress={() => handleStorePress(store.id)}
+          {/* Map Section */}
+          <View style={styles.section}>
+            <Text style={styles.sectionHeader}>Nearby Stores</Text>
+            <Animated.View style={[styles.mapContainer, mapExpanded && styles.mapExpanded]}>
+              <MapView
+                style={styles.map}
+                region={mapRegion}
+                showsUserLocation={true}
+                showsMyLocationButton={true}
               >
-                <Image source={{ uri: store.image }} style={styles.storeImage} />
-                <LinearGradient
-                  colors={['rgba(0,0,0,0.5)', 'transparent']}
-                  style={styles.imageOverlay}
-                />
-                <View style={styles.storeInfo}>
-                  <Typography variant="h3" style={styles.storeName}>
-                    {store.name}
-                  </Typography>
-                  <View style={styles.ratingContainer}>
-                    <Feather name="star" size={16} color="#FFB800" />
-                    <Typography variant="p" style={styles.rating}>
-                      {store.rating} ({store.reviews} reviews)
+                {filteredStores.map((store) => {
+                  if (!store.coordinates) return null;
+                  
+                  return (
+                    <Marker
+                      key={store.id}
+                      coordinate={{
+                        latitude: store.coordinates.latitude,
+                        longitude: store.coordinates.longitude,
+                      }}
+                      title={store.name}
+                      description={store.address}
+                      onPress={() => handleStorePress(store.id)}
+                    >
+                      <View style={styles.markerContainer}>
+                        <View style={styles.marker}>
+                          <Feather name="shopping-bag" size={20} color="#fff" />
+                        </View>
+                      </View>
+                    </Marker>
+                  );
+                })}
+              </MapView>
+              <Button 
+                mode="contained" 
+                onPress={() => setMapExpanded(!mapExpanded)}
+                style={styles.expandButton}
+              >
+                {mapExpanded ? 'Collapse Map' : 'Expand Map'}
+              </Button>
+            </Animated.View>
+          </View>
+
+          {/* Separator */}
+          <View style={styles.separator} />
+
+          {/* Stores List Section */}
+          <View style={styles.section}>
+            <Text style={styles.sectionHeader}>Available Stores</Text>
+            <ScrollView 
+              showsVerticalScrollIndicator={false}
+              contentContainerStyle={styles.scrollContent}
+            >
+              {filteredStores.map((store, index) => (
+                <AnimatedPressable
+                  key={store.id}
+                  entering={FadeInDown.delay(index * 100)}
+                  style={styles.storeCard}
+                  onPress={() => handleStorePress(store.id)}
+                >
+                  <Image source={{ uri: store.image }} style={styles.storeImage} />
+                  <LinearGradient
+                    colors={['rgba(0,0,0,0.5)', 'transparent']}
+                    style={styles.imageOverlay}
+                  />
+                  <View style={styles.storeInfo}>
+                    <Typography variant="h3" style={styles.storeName}>
+                      {store.name}
                     </Typography>
+                    <View style={styles.ratingContainer}>
+                      <Feather name="star" size={16} color="#FFB800" />
+                      <Typography variant="p" style={styles.rating}>
+                        {store.rating} ({store.reviews} reviews)
+                      </Typography>
+                    </View>
+                    <View style={styles.locationContainer}>
+                      <Feather name="map-pin" size={16} color="#666" />
+                      <Typography variant="small" style={styles.address}>
+                        {store.address} • {store.distance} km
+                      </Typography>
+                    </View>
                   </View>
-                  <View style={styles.locationContainer}>
-                    <Feather name="map-pin" size={16} color="#666" />
-                    <Typography variant="small" style={styles.address}>
-                      {store.address} • {store.distance} km
-                    </Typography>
-                  </View>
-                </View>
-              </AnimatedPressable>
-            ))}
-          </ScrollView>
+                </AnimatedPressable>
+              ))}
+            </ScrollView>
+          </View>
         </ThemedView>
       </ThemedView>
     </>
@@ -297,9 +314,23 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#E5E7EB',
   },
+  section: {
+    marginBottom: 16,
+  },
+  sectionHeader: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#1F2937',
+    marginBottom: 8,
+  },
+  separator: {
+    height: 1,
+    backgroundColor: '#E5E7EB',
+    marginVertical: 16,
+  },
   mapContainer: {
     height: 200,
-    margin: 16,
+    marginBottom: 16,
     borderRadius: 16,
     overflow: 'hidden',
   },
