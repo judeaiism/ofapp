@@ -13,9 +13,11 @@ import { useCart } from '@/app/contexts/CartContext';
 import { doc, setDoc } from 'firebase/firestore';
 import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 import { db, storage } from '@/config/firebase'; // Ensure you have this config file
+import { Feather } from '@expo/vector-icons';
+import * as Clipboard from 'expo-clipboard';
 
-type PaymentMethodType = 'crypto' | 'eft';
-type CryptoType = 'btc' | 'erc20' | 'trc20';
+type PaymentMethodType = 'crypto';
+type CryptoType = 'btc' | 'erc20' | 'trc20' | 'ltc';
 type CryptoOption = { label: string; value: CryptoType };
 
 interface DocumentAsset {
@@ -32,6 +34,61 @@ interface UploadState {
   state: 'running' | 'paused' | 'error' | 'success';
 }
 
+// Add error text component
+const ErrorText = ({ visible, message }: { visible: boolean; message: string }) => (
+  visible ? <Text style={styles.errorText}>{message}</Text> : null
+);
+
+type PhonePrefix = {
+  label: string;
+  value: string;
+};
+
+// Update the form state interface
+interface AddressFields {
+  country: string;
+  state: string;
+  city: string;
+  county: string;
+  landmark: string;
+  streetAddress: string;
+  zipCode: string;
+}
+
+// Add this type for the order data structure
+interface OrderData {
+  orderId: string;
+  customerInfo: {
+    name: string;
+    email: string;
+    phone: string;
+    address: AddressFields;
+  };
+  paymentInfo: {
+    method: PaymentMethodType;
+    cryptoType?: CryptoType;
+    proofUrl?: string;
+  };
+  orderDetails: {
+    storeId: number;
+    products: CartItem[];
+    total: number;
+    status: 'pending' | 'confirmed' | 'delivered';
+    createdAt: number;
+  };
+}
+
+// Update the OrderData interface to include proper product type
+interface CartItem {
+  id: number;
+  storeId: number;
+  name: string;
+  price: number;
+  quantity: number;
+  image?: string | number;
+}
+
+// Add near the top of the CheckoutScreen component
 export default function CheckoutScreen() {
   const { storeId, products } = useLocalSearchParams();
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethodType>('crypto');
@@ -40,16 +97,36 @@ export default function CheckoutScreen() {
     name: '',
     email: '',
     phone: '',
-    address: '',
+    address: {
+      country: 'South Africa', // Default and locked to South Africa
+      state: 'Western Cape', // Default and locked to Western Cape
+      city: 'Cape Town', // Default and locked to Cape Town
+      county: '',
+      landmark: '',
+      streetAddress: '',
+      zipCode: '',
+    } as AddressFields,
+    confirmAddress: {
+      country: 'South Africa',
+      state: 'Western Cape',
+      city: 'Cape Town',
+      county: '',
+      landmark: '',
+      streetAddress: '',
+      zipCode: '',
+    } as AddressFields,
   });
   const [selectedCrypto, setSelectedCrypto] = useState<CryptoType>('btc');
   const [paymentProof, setPaymentProof] = useState<string | null>(null);
   const [paymentProofAsset, setPaymentProofAsset] = useState<DocumentAsset | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const { state, dispatch } = useCart();
+  const [selectedPrefix, setSelectedPrefix] = useState<string>('+1'); // Default to US/Canada
+  const { state: cartState } = useCart(); // Make sure useCart is imported
 
   const CRYPTO_OPTIONS: CryptoOption[] = [
     { label: 'Bitcoin (BTC)', value: 'btc' },
+    { label: 'Litecoin (LTC)', value: 'ltc' },
     { label: 'USDT (ERC20)', value: 'erc20' },
     { label: 'USDT (TRC20)', value: 'trc20' },
   ];
@@ -57,61 +134,112 @@ export default function CheckoutScreen() {
   const PAYMENT_DETAILS = {
     crypto: {
       btc: {
-        walletAddress: 'bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh',
-        qrCodeUrl: require('@/assets/images/btc-qr.png'),
+        walletAddress: 'bc1ql4te0h6k0j6f4psqgepqfuelrp8cmx7ypfe0gt',
+      },
+      ltc: {
+        walletAddress: 'ltc1qh87wzyamfq2mgvtl0ygr5f9mt2dtuadr8g3vk8',
       },
       erc20: {
-        walletAddress: '0x1234567890abcdef1234567890abcdef12345678',
-        qrCodeUrl: require('@/assets/images/erc20-qr.png'),
+        walletAddress: '0x2F825D795f5EA4f92Ce2b5397733E8Db0BB062d9',
       },
       trc20: {
-        walletAddress: 'TNVtwXXXXXXXXXXXXXXXXXXXXXXXXXXXXX',
-        qrCodeUrl: require('@/assets/images/trc20-qr.png'),
+        walletAddress: 'TTHc2iqVR2RnT6QMPu9pUhewbjC6ik5QtU',
       },
     },
-    eft: {
-      bankName: 'Example Bank',
-      accountHolder: 'Flower Shop',
-      accountNumber: '1234567890',
-      branchCode: '250655',
-      reference: orderId,
-    },
+  };
+
+  const PHONE_PREFIXES: PhonePrefix[] = [
+    { label: 'USA/Canada (+1)', value: '+1' },
+    { label: 'UK (+44)', value: '+44' },
+    { label: 'South Africa (+27)', value: '+27' },
+    { label: 'Japan (+81)', value: '+81' },
+    { label: 'South Korea (+82)', value: '+82' },
+    { label: 'India (+91)', value: '+91' },
+    { label: 'Australia (+61)', value: '+61' },
+    { label: 'Germany (+49)', value: '+49' },
+    { label: 'France (+33)', value: '+33' },
+    { label: 'Italy (+39)', value: '+39' },
+    { label: 'Spain (+34)', value: '+34' },
+    { label: 'Russia (+7)', value: '+7' },
+    { label: 'Brazil (+55)', value: '+55' },
+    { label: 'Mexico (+52)', value: '+52' },
+  ];
+
+  const calculateTotal = (): number => {
+    if (!cartState.items || cartState.items.length === 0) {
+      return 0;
+    }
+
+    const subtotal = cartState.items.reduce((total, item) => {
+      return total + (item.price * item.quantity);
+    }, 0);
+
+    // Add delivery fee if applicable (can be adjusted based on your business logic)
+    const deliveryFee = 0; // Free delivery as per the stores data
+
+    // Calculate total including delivery
+    const total = subtotal + deliveryFee;
+
+    return total;
   };
 
   const createOrder = async (paymentProofUrl: string | null) => {
     try {
-      // Create order document in Firestore
-      const orderData = {
-        id: orderId,
-        items: state.items,
-        total: state.total,
-        status: 'ordered',
-        date: new Date().toISOString(),
+      setIsLoading(true);
+      
+      // Get storeId from the first item in cart and ensure it's a number
+      const cartStoreId = state.items[0]?.storeId;
+      
+      if (typeof cartStoreId !== 'number') {
+        throw new Error('Invalid or missing store ID');
+      }
+
+      const orderData: OrderData = {
+        orderId: orderId,
         customerInfo: {
           name: form.name,
           email: form.email,
-          phone: form.phone,
+          phone: `${selectedPrefix}${form.phone}`,
           address: form.address,
         },
-        payment: {
+        paymentInfo: {
           method: paymentMethod,
-          ...(paymentMethod === 'crypto' && { cryptoType: selectedCrypto }),
-          proofUrl: paymentProofUrl,
+          cryptoType: selectedCrypto,
+          proofUrl: paymentProofUrl || undefined,
+        },
+        orderDetails: {
+          storeId: cartStoreId, // Now properly typed as number
+          products: state.items.map(item => ({
+            ...item,
+            id: Number(item.id) // Ensure ID is a number
+          })),
+          total: calculateTotal(),
+          status: 'pending',
+          createdAt: Date.now(),
         },
       };
 
-      // Save to Firestore
-      await setDoc(doc(db, 'orders', orderId), orderData);
+      // Create the order document in Firestore
+      const orderRef = doc(db, 'orders', orderId);
+      await setDoc(orderRef, orderData);
 
-      // Clear cart and redirect
+      // Store order in AsyncStorage for offline access
+      await AsyncStorage.setItem(`order_${orderId}`, JSON.stringify(orderData));
+
+      // Clear the cart
       dispatch({ type: 'CLEAR_CART' });
-      router.push({
+
+      // Navigate to success screen
+      router.replace({
         pathname: '/checkout/success',
         params: { orderId }
       });
+
     } catch (error) {
       console.error('Error creating order:', error);
-      throw error; // Re-throw to be handled by the parent try-catch
+      Alert.alert('Error', 'Failed to create order. Please try again.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -166,6 +294,16 @@ export default function CheckoutScreen() {
     setPaymentMethod(value as PaymentMethodType);
   };
 
+  const handleCopyAddress = async (address: string) => {
+    try {
+      await Clipboard.setStringAsync(address);
+      Alert.alert('Copied!', 'Address copied to clipboard');
+    } catch (error) {
+      console.error('Error copying to clipboard:', error);
+      Alert.alert('Error', 'Failed to copy address');
+    }
+  };
+
   const renderCryptoPaymentDetails = () => (
     <View style={styles.paymentDetails}>
       <Typography variant="p" style={styles.paymentInfo}>
@@ -184,11 +322,25 @@ export default function CheckoutScreen() {
       <Typography variant="p" style={[styles.paymentInfo, styles.addressTitle]}>
         Send payment to the following {selectedCrypto.toUpperCase()} address:
       </Typography>
-      <Typography variant="small">
-        <Text selectable style={styles.walletAddress}>
-          {PAYMENT_DETAILS.crypto[selectedCrypto as CryptoType].walletAddress}
-        </Text>
+      
+      <Typography variant="small" style={styles.copyInstruction}>
+        Tap address to copy to clipboard
       </Typography>
+      
+      <Pressable 
+        onPress={() => handleCopyAddress(PAYMENT_DETAILS.crypto[selectedCrypto as CryptoType].walletAddress)}
+        style={({ pressed }) => [
+          styles.addressContainer,
+          pressed && styles.addressContainerPressed
+        ]}
+      >
+        <View style={styles.addressContent}>
+          <Text style={styles.walletAddress}>
+            {PAYMENT_DETAILS.crypto[selectedCrypto as CryptoType].walletAddress}
+          </Text>
+          <Feather name="copy" size={20} color="#666" style={styles.copyIcon} />
+        </View>
+      </Pressable>
       
       <Button
         mode="outlined"
@@ -197,12 +349,6 @@ export default function CheckoutScreen() {
       >
         {paymentProof ? `Selected: ${paymentProof}` : 'Upload Payment Proof'}
       </Button>
-      
-      <Image 
-        source={PAYMENT_DETAILS.crypto[selectedCrypto as CryptoType].qrCodeUrl}
-        style={styles.qrCode}
-        resizeMode="contain"
-      />
     </View>
   );
 
@@ -305,85 +451,51 @@ export default function CheckoutScreen() {
   const renderPaymentMethodCards = () => (
     <View style={styles.paymentMethodWrapper}>
       <Surface style={styles.paymentMethodSurface}>
-        <RadioButton.Group 
-          onValueChange={handlePaymentMethodChange}
-          value={paymentMethod}
-        >
-          <View style={styles.paymentMethodContainer}>
-            <Pressable 
-              onPress={() => handlePaymentMethodChange('crypto')}
-              style={({ pressed }: { pressed: boolean }) => [
-                styles.paymentOption,
-                paymentMethod === 'crypto' && styles.selectedPayment,
-                pressed && styles.pressedPayment
-              ]}
-            >
-              <RadioButton value="crypto" />
-              <View style={styles.paymentOptionContent}>
-                <Typography variant="h4">Pay with Cryptocurrency</Typography>
-                <Typography variant="small" style={styles.paymentDescription}>
-                  Pay instantly using your crypto wallet
-                </Typography>
-              </View>
-            </Pressable>
-            
-            <Pressable
-              onPress={() => handlePaymentMethodChange('eft')}
-              style={({ pressed }: { pressed: boolean }) => [
-                styles.paymentOption,
-                paymentMethod === 'eft' && styles.selectedPayment,
-                pressed && styles.pressedPayment
-              ]}
-            >
-              <RadioButton value="eft" />
-              <View style={styles.paymentOptionContent}>
-                <Typography variant="h4">Pay with EFT</Typography>
-                <Typography variant="small" style={styles.paymentDescription}>
-                  Make a direct bank transfer
-                </Typography>
-              </View>
-            </Pressable>
+        <View style={styles.paymentMethodContainer}>
+          <View style={styles.paymentOption}>
+            <View style={styles.paymentOptionContent}>
+              <Typography variant="h4">Pay with Cryptocurrency</Typography>
+              <Typography variant="small" style={styles.paymentDescription}>
+                Pay instantly using your crypto wallet
+              </Typography>
+            </View>
           </View>
-        </RadioButton.Group>
+        </View>
       </Surface>
     </View>
   );
 
-  const renderEftPaymentDetails = () => (
-    <View style={styles.paymentDetails}>
-      <Typography variant="p" style={styles.paymentInfo}>
-        Bank Details:
-      </Typography>
-      {Object.entries(PAYMENT_DETAILS.eft).map(([key, value]) => (
-        <Typography key={key} variant="small">
-          <Text selectable style={styles.bankDetail}>
-            {key.charAt(0).toUpperCase() + key.slice(1)}: {value}
-          </Text>
-        </Typography>
-      ))}
+  // Add validation function for addresses
+  const validateAddresses = (address: string, confirmAddress: string) => {
+    if (confirmAddress && address !== confirmAddress) {
+      Alert.alert('Address Mismatch', 'Delivery addresses do not match');
+      return false;
+    }
+    return true;
+  };
 
-      <Button
-        mode="outlined"
-        onPress={handleFilePick}
-        style={styles.uploadButton}
-      >
-        {paymentProof ? `Selected: ${paymentProof}` : 'Upload Payment Proof'}
-      </Button>
-    </View>
-  );
-
-  // Add validation function
+  // Update the form validation
   const isFormValid = () => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const phoneRegex = /^[\d\s-]{10,}$/;
+    const postalCodeRegex = /^\d{4}$/;
+
     const isContactInfoComplete = 
-      form.name.trim() !== '' &&
-      form.email.trim() !== '' &&
-      form.phone.trim() !== '' &&
-      form.address.trim() !== '';
-    
-    // Require payment proof for both payment methods
+      form.name.trim().length >= 2 &&
+      emailRegex.test(form.email.trim()) &&
+      phoneRegex.test(form.phone.trim());
+
+    const isAddressComplete =
+      form.address.streetAddress.trim().length >= 5 &&
+      form.address.landmark.trim().length >= 3 &&
+      postalCodeRegex.test(form.address.zipCode) &&
+      form.address.city === 'Cape Town' && // Ensure delivery is in Cape Town
+      form.address.state === 'Western Cape' &&
+      form.address.country === 'South Africa';
+
     const isPaymentComplete = paymentProof !== null;
 
-    return isContactInfoComplete && isPaymentComplete;
+    return isContactInfoComplete && isAddressComplete && isPaymentComplete;
   };
 
   return (
@@ -402,41 +514,158 @@ export default function CheckoutScreen() {
           <Typography variant="h3" style={styles.sectionTitle}>
             Contact Information
           </Typography>
-          <TextInput
-            label="Full Name"
-            value={form.name}
-            onChangeText={(text) => setForm(prev => ({ ...prev, name: text }))}
-            style={styles.input}
+          
+          <View>
+            <TextInput
+              label="Full Name"
+              value={form.name}
+              onChangeText={(text) => setForm(prev => ({ ...prev, name: text }))}
+              style={styles.input}
+              error={form.name.trim().length > 0 && form.name.trim().length < 2}
+            />
+            <ErrorText 
+              visible={form.name.trim().length > 0 && form.name.trim().length < 2} 
+              message="Name is too short"
+            />
+          </View>
+          
+          <View>
+            <TextInput
+              label="Email"
+              value={form.email}
+              onChangeText={(text) => setForm(prev => ({ ...prev, email: text }))}
+              style={styles.input}
+              keyboardType="email-address"
+              autoCapitalize="none"
+              error={form.email.trim().length > 0 && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())}
+            />
+            <ErrorText 
+              visible={form.email.trim().length > 0 && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())} 
+              message="Invalid email format"
+            />
+          </View>
+          
+          <View style={styles.phoneContainer}>
+            <Dropdown
+              style={styles.prefixDropdown}
+              data={PHONE_PREFIXES}
+              maxHeight={300}
+              labelField="label"
+              valueField="value"
+              value={selectedPrefix}
+              onChange={item => setSelectedPrefix(item.value)}
+              placeholder="Select prefix"
+            />
+            <TextInput
+              label="Phone Number"
+              value={form.phone}
+              onChangeText={(text) => {
+                // Remove any non-digit characters except spaces and dashes
+                const cleanedText = text.replace(/[^\d\s-]/g, '');
+                setForm(prev => ({ ...prev, phone: cleanedText }));
+              }}
+              style={styles.phoneInput}
+              keyboardType="phone-pad"
+              error={form.phone.trim().length > 0 && !/^[\d\s-]{10,}$/.test(form.phone.trim())}
+            />
+          </View>
+          <ErrorText 
+            visible={form.phone.trim().length > 0 && !/^[\d\s-]{10,}$/.test(form.phone.trim())} 
+            message="Invalid phone number"
           />
-          <TextInput
-            label="Email"
-            value={form.email}
-            onChangeText={(text) => setForm(prev => ({ ...prev, email: text }))}
-            style={styles.input}
-          />
-          <TextInput
-            label="Phone"
-            value={form.phone}
-            onChangeText={(text) => setForm(prev => ({ ...prev, phone: text }))}
-            style={styles.input}
-          />
-          <TextInput
-            label="Delivery Address"
-            value={form.address}
-            onChangeText={(text) => setForm(prev => ({ ...prev, address: text }))}
-            style={styles.input}
-            multiline
-          />
+          
+          <View>
+            <Typography variant="h3" style={styles.sectionTitle}>
+              Delivery Address
+            </Typography>
+            
+            <Typography variant="small" style={styles.deliveryNotice}>
+              Note: Delivery is only available within Cape Town, South Africa
+            </Typography>
 
+            <View style={styles.addressField}>
+              <TextInput
+                label="Street Address"
+                value={form.address.streetAddress}
+                onChangeText={(text) => setForm(prev => ({
+                  ...prev,
+                  address: { ...prev.address, streetAddress: text }
+                }))}
+                style={styles.input}
+                error={form.address.streetAddress.length > 0 && form.address.streetAddress.length < 5}
+              />
+              <ErrorText 
+                visible={form.address.streetAddress.length > 0 && form.address.streetAddress.length < 5}
+                message="Please enter a valid street address"
+              />
+            </View>
+
+            <View style={styles.addressField}>
+              <TextInput
+                label="Landmark (e.g., nearby church, building)"
+                value={form.address.landmark}
+                onChangeText={(text) => setForm(prev => ({
+                  ...prev,
+                  address: { ...prev.address, landmark: text }
+                }))}
+                style={styles.input}
+                error={form.address.landmark.length > 0 && form.address.landmark.length < 3}
+              />
+              <ErrorText 
+                visible={form.address.landmark.length > 0 && form.address.landmark.length < 3}
+                message="Please enter a valid landmark"
+              />
+            </View>
+
+            <View style={styles.addressField}>
+              <TextInput
+                label="County/Suburb (Optional)"
+                value={form.address.county}
+                onChangeText={(text) => setForm(prev => ({
+                  ...prev,
+                  address: { ...prev.address, county: text }
+                }))}
+                style={styles.input}
+              />
+            </View>
+
+            <View style={styles.addressField}>
+              <TextInput
+                label="Postal Code"
+                value={form.address.zipCode}
+                onChangeText={(text) => setForm(prev => ({
+                  ...prev,
+                  address: { ...prev.address, zipCode: text }
+                }))}
+                style={styles.input}
+                keyboardType="numeric"
+                error={form.address.zipCode.length > 0 && !/^\d{4}$/.test(form.address.zipCode)}
+              />
+              <ErrorText 
+                visible={form.address.zipCode.length > 0 && !/^\d{4}$/.test(form.address.zipCode)}
+                message="Please enter a valid 4-digit postal code"
+              />
+            </View>
+
+            <View style={styles.lockedFields}>
+              <Typography variant="small">
+                City: Cape Town
+              </Typography>
+              <Typography variant="small">
+                State/Province: Western Cape
+              </Typography>
+              <Typography variant="small">
+                Country: South Africa
+              </Typography>
+            </View>
+          </View>
+          
           <Typography variant="h3" style={styles.sectionTitle}>
             Payment Method
           </Typography>
           
           {renderPaymentMethodCards()}
-
-          {paymentMethod === 'crypto' && renderCryptoPaymentDetails()}
-
-          {paymentMethod === 'eft' && renderEftPaymentDetails()}
+          {renderCryptoPaymentDetails()}
 
           <Button
             mode="contained"
@@ -491,18 +720,6 @@ const styles = StyleSheet.create({
   paymentInfo: {
     marginBottom: 8,
   },
-  walletAddress: {
-    fontFamily: 'monospace',
-    marginBottom: 16,
-    fontSize: 14,
-    lineHeight: 20,
-  },
-  qrCode: {
-    width: 200,
-    height: 200,
-    alignSelf: 'center',
-    marginTop: 16,
-  },
   bankDetail: {
     marginBottom: 8,
   },
@@ -553,5 +770,76 @@ const styles = StyleSheet.create({
   },
   pressedPayment: {
     opacity: 0.7,
+  },
+  addressContainer: {
+    backgroundColor: 'rgba(0,0,0,0.03)',
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(0,0,0,0.1)',
+    cursor: 'pointer',
+  },
+  addressContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  addressContainerPressed: {
+    opacity: 0.7,
+    backgroundColor: 'rgba(0,0,0,0.05)',
+  },
+  walletAddress: {
+    fontFamily: 'monospace',
+    fontSize: 14,
+    lineHeight: 20,
+    flex: 1,
+    color: '#000',
+  },
+  copyIcon: {
+    marginLeft: 12,
+  },
+  copyInstruction: {
+    color: '#FF0000',
+    marginBottom: 8,
+    fontSize: 12,
+  },
+  errorText: {
+    color: '#FF0000',
+    fontSize: 12,
+    marginTop: -12,
+    marginBottom: 16,
+    paddingHorizontal: 12,
+  },
+  phoneContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  prefixDropdown: {
+    width: 120,
+    height: 56, // Match TextInput height
+    borderColor: 'rgba(0,0,0,0.2)',
+    borderWidth: 1,
+    borderRadius: 4,
+    paddingHorizontal: 8,
+  },
+  phoneInput: {
+    flex: 1,
+    marginBottom: 0, // Override default input margin
+  },
+  deliveryNotice: {
+    color: '#FF0000',
+    marginBottom: 16,
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  addressField: {
+    marginBottom: 16,
+  },
+  lockedFields: {
+    backgroundColor: '#f5f5f5',
+    padding: 12,
+    borderRadius: 8,
+    marginTop: 8,
   },
 });

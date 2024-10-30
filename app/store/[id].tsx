@@ -42,7 +42,7 @@ export default function StoreDetailsScreen() {
       type: 'ADD_ITEM',
       payload: {
         id: product.id,
-        storeId: store.id,
+        storeId: Number(id),
         name: product.name,
         price: product.price,
         quantity: 1,
