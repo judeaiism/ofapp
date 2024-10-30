@@ -61,7 +61,7 @@ export default function HomeScreen() {
           <ModernButton 
             variant="outline"
             icon={<Feather name="map-pin" size={20} color="#374151" />}
-            onPress={() => Linking.openURL('https://tracking.wiid.com')}>
+            onPress={() => Linking.openURL('https://wiid.app/track')}>
             Track Your Order
           </ModernButton>
         </ThemedView>

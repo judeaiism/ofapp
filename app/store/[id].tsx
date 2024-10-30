@@ -33,11 +33,8 @@ export default function StoreDetailsScreen() {
   };
 
   const handleMessage = () => {
-    // Navigate to chat screen
-    router.push({
-      pathname: '/chat/[id]',
-      params: { id: store.id }
-    });
+    // Redirect to Wiid chat URL without parameters
+    Linking.openURL('https://wiid.app/chat');
   };
 
   const handleAddToCart = (product: Store['products'][0]) => {
